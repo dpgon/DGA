@@ -1,0 +1,10 @@
+__all__ = ["banjori", "bazarbackdoor1", "bazarbackdoor2", "bazarbackdoor3", "bazarbackdoor4",
+           "chinad", "corebot", "dircrypt", "dnschanger", "flubot",
+           "fobber1", "fobber2", "fosniw", "gozi", "kraken1",
+           "kraken2", "locky2", "locky3", "monero", "murofet1",
+           "murofet2", "murofet3", "mydoom", "necurs", "newgoz",
+           "nymaim1", "nymaim2", "padcrypt", "pizd", "proslikefan",
+           "pushdo", "pykspa1", "pykspa2", "qadars", "qakbot",
+           "qsnatcha", "qsnatchb", "ramdo", "ramnit", "ranbyus1",
+           "ranbyus2", "shiotob", "simda", "sisron", "suppobox",
+           "symmi", "tempedreve", "tinba", "vawtrak3", "zloader"]
