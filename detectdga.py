@@ -245,7 +245,6 @@ def createmaindataset():
     # Open noDGA domains
     with open("ml-data/tranco-main.dom") as f:
         lines = f.readlines()
-        #lines = lines[:50000]
 
     domains = []
     for status, line in enumerate(lines):
@@ -292,7 +291,6 @@ def createmaindataset():
     # Open DGA domains
     with open("ml-data/dga.dom") as f:
         lines = f.readlines()
-        #lines = lines[:50000]
 
     for status, line in enumerate(lines):
         if status % 100000 == 0:
