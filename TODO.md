@@ -36,7 +36,7 @@ Objetivo: que el estado de 2021 quede reproducible y descargable antes de cambia
 ### 0.2 Etiqueta y hashes
 - [x] Crear la etiqueta anotada `v2021` sobre el commit `269b362`, el último con el código de 2021 sin
       documentación nueva: `git tag -a v2021 269b362 -m "Estado del máster (2021)"`.
-- [ ] Calcular el SHA‑256 de cada fichero que se va a archivar y guardar la lista en la carpeta temporal de
+- [x] Calcular el SHA‑256 de cada fichero que se va a archivar y guardar la lista en la carpeta temporal de
       trabajo (`shasum -a 256 …`):
   - `ml-data/full.pkl`, `full-scaler.pkl`, `tiny.pkl`, `tiny-scaler.pkl`;
   - `ml-data/tranco.ng1`–`ng4`;
