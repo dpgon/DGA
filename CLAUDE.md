@@ -94,6 +94,8 @@ Respeta el estilo existente aunque no sea el ideal. Las mejoras de estilo van en
 - Mensajes cortos en inglés, en tercera persona del presente y con mayúscula inicial
   (`Updates readme, requirements and gitignore (.idea)`). Sigue ese formato.
 - No hagas commit ni push sin que lo pida el usuario. Si se trabaja en algo grande, usa una rama.
+- **Mientras dure la actualización de `TODO.md`, no se sube nada a GitHub**: ni push, ni etiquetas, ni
+  releases. Todo se publica de una vez en su fase 7 (decisión del autor, 2026-10-18).
 - No subas ficheros de más de 100 MB: GitHub los rechaza, y `full.pkl` ya pesa 99,9 MB.
 
 ## Reglas propias, fáciles de incumplir

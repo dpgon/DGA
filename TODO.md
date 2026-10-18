@@ -17,11 +17,20 @@ está acordado. Si al implementar algo choca con él, se para y se consulta, en 
   error. Las de caracterización (fase 1) deben pasar con el código tal como está.
 - Todo lo que publica hacia fuera (push, etiquetas, releases, solicitudes a terceros) requiere el visto bueno
   del autor en el momento de hacerlo.
+- **No se sube nada a GitHub hasta terminar la actualización** (decisión del autor, 2026-10-18). Lo único
+  publicado es la etiqueta `v2021` y su release (fase 0). Mientras tanto:
+  - todo se hace con commits locales;
+  - la CI se escribe y se prueba en local con `act`;
+  - las releases nuevas se preparan como borradores locales en `release/` (ignorado por git), con su URL
+    definitiva ya escrita en el manifiesto;
+  - los «clones nuevos» de las verificaciones se hacen desde el repositorio local (`git clone
+    /Users/xaturnon/Proyectos/DGA /tmp/dga-clon`).
+  Todo se publica de una vez en la fase 7.
 
 **Orden** (decidido con el autor; difiere del orden F0–F5 del diseño para no romper el detector entre fases):
 
 congelar 2021 → red de pruebas → errores en el camino → datos → medir el modelo de 2021 → salto de
-versiones + reentrenamiento → documentación.
+versiones + reentrenamiento → documentación → publicación.
 
 ---
 
@@ -140,10 +149,13 @@ rompa se note. Todas las pruebas de esta fase pasan **sin tocar el código**.
   - `pip install -r requirements.txt -r requirements-dev.txt`;
   - caché del corpus `brown` (`python -m nltk.downloader -d ~/nltk_data brown`);
   - `pytest` (sin `slow`).
-- [ ] **Verificar:** la ejecución en GitHub pasa en verde en la rama de la fase.
+- [ ] Instalar `act` en la máquina del autor (`brew install act`; Docker ya está en `/usr/local/bin/docker`),
+      con su visto bueno.
+- [ ] **Verificar en local:** `act -j <trabajo> --container-architecture linux/amd64` ejecuta el workflow y
+      pasa en verde. La comprobación en GitHub queda para la fase 7.
 
 **Aceptación de la fase 1:** `pytest` y `pytest -m slow` pasan en el entorno 2021 sin haber cambiado el
-código. La CI pasa en verde. El anexo del sondeo está escrito, con la lista de roturas del entorno 2026 y la
+código. El workflow de CI pasa en verde en `act`. El anexo del sondeo está escrito, con la lista de roturas del entorno 2026 y la
 estimación del tiempo de reentrenamiento.
 
 ---
@@ -247,11 +259,14 @@ obtenidos (C8, C7, C3, C4). **El detector sigue funcionando con el modelo de 202
   - descarga a `ml-data/` los ficheros del manifiesto;
   - verifica cada SHA‑256 y borra el fichero si no coincide;
   - salta los que ya existen y están verificados;
-  - opción `--nltk` que lanza el comando de `nlpdata.py`.
+  - opción `--nltk` que lanza el comando de `nlpdata.py`;
+  - opción `--desde <directorio>`, que copia los ficheros desde un directorio local en lugar de descargarlos,
+    con la misma verificación de SHA‑256. Es lo que permite probar los juegos nuevos antes de publicarlos.
 - [ ] Escribir `tests/test_fetchdata.py` con un servidor `http.server` local:
   - un fichero correcto se descarga y se verifica;
   - un hash incorrecto da un código de salida distinto de 0 y no deja el fichero;
-  - una segunda ejecución no descarga nada.
+  - una segunda ejecución no descarga nada;
+  - `--desde` con un fichero correcto lo instala, y con uno alterado falla.
 - [ ] Escribir antes en `tests/test_cli.py`: con `ml-data/` vacío en `repo_tmp`, `--check google.com` termina
       con un mensaje que dice que hay que ejecutar `python fetchdata.py` y con un código distinto de 0. Debe
       fallar.
@@ -261,8 +276,9 @@ obtenidos (C8, C7, C3, C4). **El detector sigue funcionando con el modelo de 202
 - [ ] Retirar del índice los ficheros de `ml-data/` salvo el manifiesto: `git rm --cached ml-data/*.pkl
       ml-data/*.dom ml-data/tranco.ng*`. Siguen en `v2021`.
 - [ ] Actualizar la CI (1.7): `python fetchdata.py` con caché de `ml-data/` indexada por el hash de
-      `ml-data/MANIFEST`.
-- [ ] **Verificar:** en un clon nuevo, en un directorio temporal, `python fetchdata.py --nltk` seguido de
+      `ml-data/MANIFEST`. Probarlo con `act`; la caché real de GitHub solo se comprueba en la fase 7.
+- [ ] **Verificar:** en un clon nuevo hecho desde el repositorio local, en un directorio temporal, que descarga
+      los assets de `v2021` (ya publicados), `python fetchdata.py --nltk` seguido de
       `pytest -m "model or not model"` pasa, y `--check` con los cinco dominios del README da los mismos
       veredictos.
 - [ ] Actualizar `README.md` («Install»): el paso `python fetchdata.py --nltk` tras instalar las dependencias,
@@ -325,14 +341,20 @@ obtenidos (C8, C7, C3, C4). **El detector sigue funcionando con el modelo de 202
 - [ ] **Fuera del código:** enviar a Fraunhofer FKIE la solicitud de acceso a DGArchive. Anotar la fecha y la
       respuesta en `docs/FUTURE.md` §1.2.1.
 
-### 3.5 Release de datos 2026
-- [ ] Crear la release `datos-2026` (nombre definitivo a elegir al implementarlo) con los ficheros del juego
-      `2026` que se puedan redistribuir.
-- [ ] Rellenar sus URLs en el manifiesto.
-- [ ] `fetchdata.py --juego 2026` descarga el juego de datos nuevo. Por defecto, los ficheros del **modelo** y
-      del diccionario siguen siendo los de `2021` hasta la fase 5.
-- [ ] **Verificar:** un clon nuevo con `fetchdata.py` (por defecto) y `fetchdata.py --juego 2026` descarga y
-      verifica todo, y las pruebas de las fases 1–2 pasan.
+### 3.5 Borrador local de la release de datos 2026
+- [ ] Elegir el nombre definitivo de la release (propuesta: `datos-2026`).
+- [ ] Añadir `release/` a `.gitignore`.
+- [ ] Copiar a `release/datos-2026/` los ficheros del juego `2026` que se puedan redistribuir (3.4), junto
+      con un `notas.md` con su procedencia, licencias y SHA‑256. **No se publica**: eso se hace en la fase 7.
+- [ ] Rellenar en el manifiesto sus URLs definitivas
+      (`https://github.com/dpgon/DGA/releases/download/datos-2026/<fichero>`). Los ficheros que no se
+      redistribuyen llevan la URL de su fuente.
+- [ ] `fetchdata.py --juego 2026` instala el juego de datos nuevo; hasta la fase 7, con
+      `--desde release/datos-2026`. Por defecto, los ficheros del **modelo** y del diccionario siguen siendo
+      los de `2021` hasta la fase 5.
+- [ ] **Verificar:** en un clon nuevo hecho desde el repositorio local, `fetchdata.py` (por defecto, que
+      descarga de `v2021`) y `fetchdata.py --juego 2026 --desde <ruta>/release/datos-2026` instalan y
+      verifican todo, y las pruebas de las fases 1–2 pasan.
 
 **Aceptación de la fase 3:**
 - el árbol de trabajo ya no contiene ficheros pesados;
@@ -479,9 +501,14 @@ Depende de: el anexo del sondeo (1.6), las fases 2–4 y los datos del juego `20
   - las métricas son razonables frente a las de 2021. Si caen mucho, parar y analizar antes de publicar.
 - [ ] Actualizar la prueba 1.4 con los veredictos esperados del modelo nuevo y añadir el conjunto de
       referencia de C2 (umbral de aciertos, no igualdad exacta).
-- [ ] Publicar la release del modelo (`modelo-2026`, nombre definitivo a elegir al implementarlo):
-      `full.skops`, `full-scaler.skops`, `full.json`, el equivalente de `tiny`, y `tranco.ng*.csv`.
-- [ ] Actualizar el manifiesto: el juego por defecto pasa a `2026`; `2021` queda como juego histórico.
+- [ ] Preparar el borrador local de la release del modelo en `release/modelo-2026/` (nombre definitivo a
+      elegir al implementarlo): `full.skops`, `full-scaler.skops`, `full.json`, el equivalente de `tiny`,
+      `tranco.ng*.csv` y un `notas.md` con las métricas y los SHA‑256. **No se publica** hasta la fase 7.
+- [ ] Actualizar el manifiesto con sus URLs definitivas. El juego por defecto pasa a `2026`; `2021` queda como
+      juego histórico.
+- [ ] **Verificar:** en un clon nuevo hecho desde el repositorio local, `fetchdata.py --desde
+      <ruta>/release/modelo-2026` y `--desde <ruta>/release/datos-2026` dejan `--check` funcionando con el
+      modelo nuevo.
 
 ### 5.5 CI en las versiones nuevas
 - [ ] Sustituir el trabajo de Python 3.9 de `.github/workflows/tests.yml` por una matriz {`ubuntu-latest`,
@@ -489,14 +516,20 @@ Depende de: el anexo del sondeo (1.6), las fases 2–4 y los datos del juego `20
   - `pip install -r requirements-lock.txt -r requirements-dev.txt`;
   - `python fetchdata.py --nltk` con caché;
   - `pytest`.
-- [ ] **Verificar en Windows:**
+- [ ] **Verificar Linux en local:** `act` ejecuta los trabajos de Ubuntu con 3.12 y 3.13 en verde. `act` solo
+      ejecuta contenedores Linux.
+- [ ] **Verificar macOS arm64 en local:** en la máquina del autor, sin Rosetta, con 3.12 y 3.13:
+      `pip install -r requirements-lock.txt -r requirements-dev.txt`, `fetchdata.py --desde …` y `pytest`
+      pasan.
+- [ ] **Windows:** no se puede verificar en local. Queda para la fase 7, con estas comprobaciones:
   - las rutas `ml-data/…` y `DGAs/wordlist/…` funcionan;
   - los colores ANSI no rompen las pruebas;
   - los generadores con `ctypes` dan la instantánea de 1.3.
 
 **Aceptación de la fase 5:**
-- en Python 3.12 y 3.13, en Linux, macOS arm64 y Windows, la instalación con `requirements-lock.txt` y
-  `fetchdata.py` funciona sin emulación, y `pytest` pasa;
+- en Python 3.12 y 3.13, en Linux (`act`) y en macOS arm64 (local), la instalación con
+  `requirements-lock.txt` y `fetchdata.py` funciona sin emulación, y `pytest` pasa. Windows queda pendiente
+  de la fase 7;
 - el modelo nuevo se carga sin `pickle`, con metadatos y hashes verificados;
 - las métricas sobre conjuntos limpios están medidas y comparadas con las de 2021;
 - la instantánea de generadores no ha cambiado.
@@ -571,6 +604,47 @@ en un clon nuevo.
 
 ---
 
+## Fase 7 — Publicación
+
+Objetivo: publicar de una vez la actualización completa y comprobar en GitHub lo que no se pudo comprobar en
+local. Cada paso requiere el visto bueno del autor en el momento de hacerlo.
+
+### 7.1 Antes de publicar
+- [ ] Revisar con el autor la lista de lo que se va a publicar:
+  - los commits de `main` (`git log origin/main..main`);
+  - las dos releases de `release/`, con sus notas;
+  - las etiquetas nuevas.
+- [ ] Comprobar que ningún fichero de más de 100 MB entra en los commits (`git rev-list --objects
+      origin/main..main` + `git cat-file --batch-check`) y que `release/` y `ml-data/*` no están versionados.
+
+### 7.2 Releases
+- [ ] Publicar la release de datos (`gh release create datos-2026 …`) con los ficheros y las notas de
+      `release/datos-2026/`.
+- [ ] Publicar la release del modelo (`gh release create modelo-2026 …`) con `release/modelo-2026/`.
+- [ ] **Verificar:** descargar cada asset (`gh release download`) y comparar su SHA‑256 con
+      `ml-data/MANIFEST`.
+
+### 7.3 Código
+- [ ] `git push origin main`, más la etiqueta de versión de la actualización si el autor decide crearla.
+- [ ] **Verificar la CI en GitHub:** la matriz completa de 5.5 pasa en verde, **incluido Windows**, con las
+      comprobaciones de Windows de 5.5.
+- [ ] Si Windows falla: corregirlo en una rama, verificarlo en la CI de GitHub (ya se puede subir) y unirlo
+      a `main`.
+- [ ] Comprobar que la caché de `ml-data/` de la CI funciona: la segunda ejecución no vuelve a descargar.
+
+### 7.4 Comprobación final
+- [ ] En un clon nuevo **desde GitHub**, sin `--desde`: instalar con `requirements-lock.txt`,
+      `python fetchdata.py --nltk`, `pytest` y el ejemplo `--check` del README.
+- [ ] Comprobar que el enlace de las notas de `v2021` a `docs/MVP.md` en `main` funciona.
+- [ ] Borrar los borradores locales de `release/`, una vez verificadas las releases publicadas.
+
+**Aceptación de la fase 7:**
+- `main`, las releases de datos y de modelo y sus assets están en GitHub y sus hashes coinciden;
+- la CI pasa en verde en las tres plataformas;
+- un clon nuevo desde GitHub funciona siguiendo solo el README.
+
+---
+
 ## Dependencias entre fases
 
 | Fase | Depende de | Motivo |
@@ -581,6 +655,7 @@ en un clon nuevo.
 | 4 | 2, 3 | Necesita `--secondary` (2.3) y los datos de 2026 (3.3, 3.4) |
 | 5 | 1.6, 2, 3, 4 | Las roturas de API salen del sondeo; las métricas de 2021 (4.4) son la base de comparación |
 | 6 | 5 | Documenta el estado final. Las notas del README de cada fase ya se actualizan en su fase |
+| 7 | 6 | Solo se publica cuando todo está terminado y documentado (decisión del autor) |
 | — | Externa: DGArchive | No bloquea ninguna fase; su respuesta solo se anota (3.4) |
 
 ## Cobertura del diseño
@@ -588,14 +663,14 @@ en un clon nuevo.
 | Punto de `docs/CORRECCIONES.md` | Lo entrega |
 |---|---|
 | D7 Etiqueta `v2021` y retirada de los ficheros de 2021 | 0.2, 0.3, 3.1, 3.3 (`top-1m.csv`) |
-| C1 Dependencias instalables | 5.1, 5.5 |
+| C1 Dependencias instalables | 5.1, 5.5; 7.3 (Windows y CI en GitHub) |
 | C2 Modelo reentrenado, `skops`, metadatos | 5.2, 5.4 |
 | C3 Datos legítimos actuales (Tranco, Umbrella, `statsdga`) | 3.3, 4.2 |
 | C4 Fuentes DGA (Netlab 2021, Hugging Face, corpus propio, DGArchive) | 3.4, 4.1 |
 | C5 Evaluación sin solapes | 4.1, 4.2 |
 | C6 `--secondary` | 2.3 |
 | C7 Lista de sufijos actual | 3.2 (preparar), 5.3 (activar) |
-| C8 Datos fuera de git, manifiesto y releases | 3.1, 3.5, 5.4 (release del modelo) |
+| C8 Datos fuera de git, manifiesto y releases | 3.1, 3.5 y 5.4 (borradores locales), 7.2 (publicación) |
 | C9 `checktranco()` y `loadngram()` | 2.4 |
 | C10 `n_jobs` | 5.2 |
 | C11 NLTK sin red al importar | 2.5, 3.1 (`--nltk`) |
