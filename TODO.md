@@ -144,7 +144,7 @@ rompa se note. Todas las pruebas de esta fase pasan **sin tocar el código**.
       la fase 1.
 
 ### 1.7 CI en el entorno 2021
-- [ ] Crear `.github/workflows/tests.yml`:
+- [x] Crear `.github/workflows/tests.yml`:
   - `ubuntu-22.04`, Python 3.9;
   - `pip install -r requirements.txt -r requirements-dev.txt`;
   - caché del corpus `brown` (`python -m nltk.downloader -d ~/nltk_data brown`);
