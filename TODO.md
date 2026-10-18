@@ -188,14 +188,14 @@ Objetivo: que el detector y el corpus den resultados fiables antes de usarlos pa
       pasando con los mismos veredictos.
 
 ### 2.2 `-C` deja la salida estándar limpia (C13)
-- [ ] Escribir antes en `tests/test_lookdga.py`: `lookdga.py -m banjori -n 2 -C` → todas las líneas de la
+- [x] Escribir antes en `tests/test_lookdga.py`: `lookdga.py -m banjori -n 2 -C` → todas las líneas de la
       salida estándar cumplen `^[^,]+,[^,]+,[^,]*,\d{4}-\d{2}-\d{2}$`, y las líneas de estado aparecen en la
       salida de error. Debe fallar.
-- [ ] En `dga.create()` (`dga.py:238`, `:283`), imprimir las dos líneas de estado en `sys.stderr`.
-- [ ] Mantener el filtro de `*` de `createtestdataset()` (`detectdga.py:410`) para seguir leyendo los
+- [x] En `dga.create()` (`dga.py:238`, `:283`), imprimir las dos líneas de estado en `sys.stderr`.
+- [x] Mantener el filtro de `*` de `createtestdataset()` (`detectdga.py:410`) para seguir leyendo los
       `mydgas.dom` antiguos. Añadir un comentario que lo explique.
-- [ ] Actualizar la prueba 1.2 de `-C`: ya no hace falta descartar las líneas con `*`.
-- [ ] **Verificar regresiones:** las pruebas de `-G`, `-I`, `-F` y `-L` siguen pasando sin cambios, y
+- [x] Actualizar la prueba 1.2 de `-C`: ya no hace falta descartar las líneas con `*`.
+- [x] **Verificar regresiones:** las pruebas de `-G`, `-I`, `-F` y `-L` siguen pasando sin cambios, y
       `statsdga.py`, que usa `dga.create()` con `main=False`, también.
 
 ### 2.3 `--secondary` usa el fichero que existe (C6)

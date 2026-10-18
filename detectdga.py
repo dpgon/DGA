@@ -422,6 +422,7 @@ def createtestdataset():
             print("=", end="")
 
         line = line.strip()
+        # Status lines starting with "*": lookdga.py -C mixed them with the CSV before C13 (2021 mydgas.dom)
         if '*' in line or not line:
             continue
         items = line.split(',')
