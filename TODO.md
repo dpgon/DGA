@@ -45,14 +45,14 @@ Objetivo: que el estado de 2021 quede reproducible y descargable antes de cambia
   - `DGAs/wordlist/effective_tld_names.dat`.
 
 ### 0.3 Release `v2021`
-- [ ] Subir la etiqueta: `git push origin v2021`.
-- [ ] Crear la release `v2021` (`gh release create v2021 …`) con los ficheros de 0.2 como assets.
-- [ ] Las notas de la release incluyen:
+- [x] Subir la etiqueta: `git push origin v2021`.
+- [x] Crear la release `v2021` (`gh release create v2021 …`) con los ficheros de 0.2 como assets.
+- [x] Las notas de la release incluyen:
   - el entorno (Python 3.9 x86_64, `requirements.txt` de la etiqueta);
   - los comandos de instalación con Rosetta (de `CLAUDE.md`);
   - la tabla de SHA‑256;
   - un enlace a `docs/MVP.md`.
-- [ ] **Verificar:** descargar cada asset (`gh release download v2021 -D /tmp/v2021`) y comparar sus SHA‑256
+- [x] **Verificar:** descargar cada asset (`gh release download v2021 -D /tmp/v2021`) y comparar sus SHA‑256
       con la lista de 0.2.
 
 **Aceptación de la fase 0:** la etiqueta `v2021` y su release existen en GitHub. Los assets descargados
