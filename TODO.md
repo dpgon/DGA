@@ -76,82 +76,82 @@ Objetivo: fijar con pruebas lo que hoy funciona (`docs/MVP.md`), para que cualqu
 rompa se note. Todas las pruebas de esta fase pasan **sin tocar el código**.
 
 ### 1.1 Infraestructura
-- [ ] Crear `requirements-dev.txt` con `pytest` en una versión compatible con Python 3.9 (fijada).
-- [ ] Crear `pytest.ini`:
+- [x] Crear `requirements-dev.txt` con `pytest` en una versión compatible con Python 3.9 (fijada).
+- [x] Crear `pytest.ini`:
   - `testpaths = tests`;
   - marcadores `slow` (más de 30 s) y `model` (necesita `ml-data/full.pkl`);
   - opción por defecto `-m "not slow"`.
-- [ ] Crear `tests/conftest.py` con:
+- [x] Crear `tests/conftest.py` con:
   - una función que ejecute un script del repositorio por `subprocess` con `cwd` en la raíz y el entorno
     `PYTHONDONTWRITEBYTECODE=1`, y que devuelva salida estándar, salida de error y código de salida;
   - un *fixture* `nltk_data` que apunte `NLTK_DATA` a un directorio con el corpus `brown` (descargado una
     vez fuera del repositorio);
   - un *fixture* `strip_ansi` para comparar sin códigos de color.
-- [ ] Documentar en `CLAUDE.md` («Entorno, ejecución y pruebas») el comando exacto:
+- [x] Documentar en `CLAUDE.md` («Entorno, ejecución y pruebas») el comando exacto:
       `pip install -r requirements-dev.txt && pytest` y `pytest -m slow` para las lentas.
 
 ### 1.2 Caracterización de `lookdga.py` (`tests/test_lookdga.py`)
-- [ ] `-L`: 50 líneas; la primera empieza por `banjori` y contiene `Banjori malware`.
-- [ ] `-m zloader -I`: contiene `Max samples per date: 32` y `Domain regular expresion: [a-y]{20}.com`.
-- [ ] `-m tinba -n 5 -G`: los cinco dominios exactos de `docs/MVP.md` §3, en orden.
-- [ ] `-d 2026-10-18 -n 3 -G`: 148 líneas de dominio (49 × 3 + 1 de tempedreve).
-- [ ] `-d 2026-10-18 -n 100 -C`: 5.000 líneas de datos (descartando las que empiezan por `*`) y 50 familias
+- [x] `-L`: 50 líneas; la primera empieza por `banjori` y contiene `Banjori malware`.
+- [x] `-m zloader -I`: contiene `Max samples per date: 32` y `Domain regular expresion: [a-y]{20}.com`.
+- [x] `-m tinba -n 5 -G`: los cinco dominios exactos de `docs/MVP.md` §3, en orden.
+- [x] `-d 2026-10-18 -n 3 -G`: 148 líneas de dominio (49 × 3 + 1 de tempedreve).
+- [x] `-d 2026-10-18 -n 100 -C`: 5.000 líneas de datos (descartando las que empiezan por `*`) y 50 familias
       distintas en la segunda columna.
-- [ ] `-d 2026-10-18 -F`: 1.784 dominios, ninguno repetido.
-- [ ] `-D nvfowikhevmy.net`: la salida incluye `Tinba backdoor`. No se codifica el falso positivo de
+- [x] `-d 2026-10-18 -F`: 1.794 dominios, ninguno repetido (en `docs/MVP.md` salió 1.784 porque se ejecutó sin `-d`: pizd, pykspa2 y suppobox dependen de la hora).
+- [x] `-D nvfowikhevmy.net`: la salida incluye `Tinba backdoor`. No se codifica el falso positivo de
       `google.com`, que es una limitación conocida y no un comportamiento que haya que conservar.
-- [ ] `-m noexiste -I`: contiene `Unknown malware name`.
-- [ ] `-m tinba -B nvfowikhevmy.net` (`slow`): contiene `tinba: Domain nvfowikhevmy.net with config 1 is in
+- [x] `-m noexiste -I`: contiene `Unknown malware name`.
+- [x] `-m tinba -B nvfowikhevmy.net` (`slow`): contiene `tinba: Domain nvfowikhevmy.net with config 1 is in
       10 position`.
 
 ### 1.3 Instantánea y fidelidad de generadores (`tests/test_generators.py`)
-- [ ] Generar con el código actual `tests/data/snapshot_2026-10-18.csv`: los 3 primeros dominios de cada
+- [x] Generar con el código actual `tests/data/snapshot_2026-10-18.csv`: los 3 primeros dominios de cada
       familia y semilla de `configs` para la fecha 2026-10-18 (`familia,config,posición,dominio`). Documentar
       en la cabecera del fichero con qué commit se generó.
-- [ ] Prueba: el código reproduce exactamente la instantánea. Es la que avisará de cualquier cambio en los
+- [x] Prueba: el código reproduce exactamente la instantánea. Es la que avisará de cualquier cambio en los
       generadores con el salto de versiones de la fase 5.
-- [ ] Extraer `tests/data/referencia_netlab.csv`: para las 11 variantes con confirmación externa (simda,
+- [x] Extraer `tests/data/referencia_netlab.csv`: para las 11 variantes con confirmación externa (simda,
       ramnit, banjori, shiotob, pykspa2, tinba, fobber1, fobber2, dircrypt, pizd, vawtrak3), hasta 20
       dominios por variante presentes a la vez en `ml-data/mydgas.dom` y `ml-data/dga.dom`, con su semilla y
       su fecha.
-- [ ] Prueba: cada dominio de la referencia aparece entre los generados para su familia, semilla y fecha.
-- [ ] Prueba: las 50 variantes generan al menos un dominio sin lanzar ninguna excepción para 2026-10-18.
+- [x] Prueba: cada dominio de la referencia aparece entre los generados para su familia, semilla y fecha.
+- [x] Prueba: las 50 variantes generan al menos un dominio sin lanzar ninguna excepción para 2026-10-18.
 
 ### 1.4 Caracterización del detector (`tests/test_check.py`, marcador `model`)
-- [ ] `--check` con los cinco dominios del README: `ughdnmmgdpscliraqnpl.com`, `nvfowikhevmy.net` y
+- [x] `--check` con los cinco dominios del README: `ughdnmmgdpscliraqnpl.com`, `nvfowikhevmy.net` y
       `uquslaigwaannie.ddns.net` → `DGA generated`; `google.com` y `facebook.com` → `No DGA domain`.
-- [ ] `-b --check nvfowikhevmy.net` (`slow`): contiene `Detected as tinba in 10 position`.
+- [x] `-b --check nvfowikhevmy.net` (`slow`): contiene `Detected as tinba in 10 position`.
 
 ### 1.5 Caracterización de `statsdga.py` (`tests/test_statsdga.py`)
-- [ ] Opción 1 con 50 muestras (entrada `1\n50\n0\n`): contiene `dircrypt has a limit of 30 domains in a
+- [x] Opción 1 con 50 muestras (entrada `1\n50\n0\n`): contiene `dircrypt has a limit of 30 domains in a
       date`.
-- [ ] Opción 2 con 50 muestras: contiene `kraken2: 50 generated and 45 unique`.
-- [ ] Opción 8 con DGA (`8\n50\nn\n0\n`): la línea `All DGA:` va seguida de tres líneas de longitud media,
+- [x] Opción 2 con 50 muestras: contiene `kraken2: 50 generated and 45 unique`.
+- [x] Opción 8 con DGA (`8\n50\nn\n0\n`): la línea `All DGA:` va seguida de tres líneas de longitud media,
       mínima y máxima. Se comprueba la forma, no los valores.
 
 ### 1.6 Sondeo de compatibilidad (rama desechable `sondeo/versiones-2026`, no se une)
-- [ ] Crear un entorno 2026 fuera del repositorio (Python 3.13, últimas scikit-learn, pandas, numpy y nltk,
+- [x] Crear un entorno 2026 fuera del repositorio (Python 3.13, últimas scikit-learn, pandas, numpy y nltk,
       más `pytest`).
-- [ ] Ejecutar en él `pytest -m "not model"` y anotar cada fallo con su traza.
-- [ ] En una **copia del repositorio** fuera del árbol, con `ml-data/` recortado a 10.000 líneas por fichero
+- [x] Ejecutar en él `pytest -m "not model"` y anotar cada fallo con su traza.
+- [x] En una **copia del repositorio** fuera del árbol, con `ml-data/` recortado a 10.000 líneas por fichero
       `.dom`:
   - ejecutar `--ngram`, `--main`, `--train full` y `--check`;
   - anotar cada error de API (pandas 3.0, numpy 2, nltk 3.9) con su archivo y línea.
-- [ ] Medir el tiempo de `--ngram`, `--main` y `--train full` con 10.000 dominios y extrapolar a los
+- [x] Medir el tiempo de `--ngram`, `--main` y `--train full` con 10.000 dominios y extrapolar a los
       tamaños reales (unos 3 M en `--main`).
-- [ ] Anotar los resultados (lista de roturas, tiempos, extrapolación) en un anexo «Resultados del sondeo» al
+- [x] Anotar los resultados (lista de roturas, tiempos, extrapolación) en un anexo «Resultados del sondeo» al
       final de `docs/CORRECCIONES.md`, sin cambiar sus decisiones. Hacer commit de ese anexo en la rama de
       la fase 1.
 
 ### 1.7 CI en el entorno 2021
-- [ ] Crear `.github/workflows/tests.yml`:
+- [x] Crear `.github/workflows/tests.yml`:
   - `ubuntu-22.04`, Python 3.9;
   - `pip install -r requirements.txt -r requirements-dev.txt`;
   - caché del corpus `brown` (`python -m nltk.downloader -d ~/nltk_data brown`);
   - `pytest` (sin `slow`).
-- [ ] Instalar `act` en la máquina del autor (`brew install act`; Docker ya está en `/usr/local/bin/docker`),
+- [x] Instalar `act` en la máquina del autor (`brew install act`; Docker ya está en `/usr/local/bin/docker`),
       con su visto bueno.
-- [ ] **Verificar en local:** `act -j <trabajo> --container-architecture linux/amd64` ejecuta el workflow y
+- [x] **Verificar en local:** `act -j <trabajo> --container-architecture linux/amd64` ejecuta el workflow y
       pasa en verde. La comprobación en GitHub queda para la fase 7.
 
 **Aceptación de la fase 1:** `pytest` y `pytest -m slow` pasan en el entorno 2021 sin haber cambiado el
@@ -437,9 +437,14 @@ Depende de: el anexo del sondeo (1.6), las fases 2–4 y los datos del juego `20
 - [ ] Generar `requirements-lock.txt` con `uv pip compile requirements.txt --universal --python-version 3.12
       -o requirements-lock.txt`.
 - [ ] Actualizar `requirements-dev.txt` a un `pytest` actual.
-- [ ] Corregir, una por una, las roturas de API del anexo del sondeo, cada una con su archivo y línea (p. ej.
-      los `df.drop(..., inplace=True)` de `detectdga.py:524-549,591-616` con pandas 3.0). Una casilla por
-      rotura, añadida aquí al empezar la fase.
+- [ ] Corregir las roturas y avisos del anexo del sondeo (`docs/CORRECCIONES.md`). No se encontró ninguna
+      rotura de API de pandas 3.0, numpy 2 ni scikit-learn 1.9; los `df.drop(..., inplace=True)` funcionan. La
+      rotura n.º 1 (`dnspython`) es la casilla anterior; la n.º 3 (`ResourceWarning`) se resuelve en 5.2. Queda:
+  - [ ] `DGAs/pizd.py:21`: sustituir `datetime.utcfromtimestamp(0)` (obsoleto) por un equivalente con zona
+        horaria que dé **el mismo resultado**. Lo comprueban la instantánea (1.3) y la referencia de Netlab de
+        pizd.
+- [ ] Si al empezar la fase hay versiones más nuevas que las del sondeo, repetir el sondeo de 1.6 con ellas y
+      añadir aquí una casilla por cada rotura nueva.
 - [ ] **Verificar regresiones:** en el entorno 2026, `pytest -m "not model"` pasa. En particular, la
       instantánea de generadores (1.3) es **idéntica**: el salto de versiones no debe cambiar ningún dominio
       generado.
@@ -524,7 +529,8 @@ Depende de: el anexo del sondeo (1.6), las fases 2–4 y los datos del juego `20
 - [ ] **Windows:** no se puede verificar en local. Queda para la fase 7, con estas comprobaciones:
   - las rutas `ml-data/…` y `DGAs/wordlist/…` funcionan;
   - los colores ANSI no rompen las pruebas;
-  - los generadores con `ctypes` dan la instantánea de 1.3.
+  - los generadores con `ctypes` dan la instantánea de 1.3;
+  - la instantánea se reproduce con `TZ=UTC` aunque Windows no tenga `time.tzset()` (ver `tests/conftest.py`).  Si no, fijar la zona horaria en el workflow.
 
 **Aceptación de la fase 5:**
 - en Python 3.12 y 3.13, en Linux (`act`) y en macOS arm64 (local), la instalación con

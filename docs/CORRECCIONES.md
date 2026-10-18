@@ -469,3 +469,95 @@ Ver «Lo que no se arregla ahora».
 | `docs/FUTURE.md` | Marcar como hechas las partes de 1.1.1, 1.1.2, 1.1.3 (alineación), 1.1.6, 1.1.7 y 1.1.9 (CSV de `-C`) que cubre esta corrección; dejar en 1.2.1 la dependencia de DGArchive |
 | `CLAUDE.md` | Entorno y comandos (sin Rosetta, con la descarga de datos); reglas 6, 7 y 13 (el formato `skops`, las releases en lugar de los ficheros versionados); comando de pruebas |
 | `docs/ESTUDIO.md` | No se toca: es la foto de 2021. Si acaso, una nota al principio que remita a este documento |
+
+---
+
+## Anexo: resultados del sondeo de compatibilidad (2026-10-18)
+
+Tarea 1.6 de `TODO.md`. Sondeo hecho en una copia del repositorio fuera del árbol y en un entorno aislado.
+**No cambia ninguna decisión de este documento**; solo precisa lo que hará falta en la fase 5.
+
+**Entorno:**
+- Python 3.13.16, macOS arm64 **nativo**, sin Rosetta;
+- scikit-learn 1.9.1, pandas 3.0.6, numpy 2.5.4, nltk 3.10.3, pytest 9.1.1;
+- dnspython 2.9.0, que solo se instaló para poder importar `detectdga.py`.
+
+### Pruebas de la fase 1
+
+`pytest -m "not model"` → **241 pruebas pasan** (1 min 31 s; en el entorno 2021 bajo Rosetta tardan
+2 min 24 s). La **instantánea de los 50 generadores** (`tests/data/snapshot_2026-10-18.csv`) y la
+referencia de Netlab son **idénticas** con las versiones nuevas. Las estadísticas de `statsdga.py`
+funcionan.
+
+### Flujo de entrenamiento
+
+Probado con 10.000 líneas por fichero `.dom` (`dga.dom` muestreado cada 145 líneas):
+
+| Paso | Resultado | Tiempo |
+|---|---|---|
+| `--ngram` | Funciona | 1,5 s |
+| `--main` | Funciona; acepta 18.844 dominios de 20.000 | 23,3 s |
+| `--train full` / `--train tiny` | Funcionan (exactitud con el subconjunto: 0,973 / 0,928) | 1,5 s |
+| `--secondary` | Funciona; acepta 15.832 dominios. Para el sondeo se copió `tranco-test2.dom` como `tranco-secondary.dom`, por el fallo C6 | 24,9 s |
+| `--test_secondary full` | Funciona | 1,5 s |
+| `--check` | Funciona con el modelo entrenado en el sondeo | 3,1 s |
+
+Con `-W error::FutureWarning -W error::DeprecationWarning` (ignorando los avisos internos de nltk),
+`--main`, `--train` y `--secondary` siguen funcionando: **pandas 3.0 y numpy 2 no avisan de nada** en este
+código.
+
+### Roturas y avisos encontrados
+
+| # | Qué | Dónde | Tipo | Dónde se resuelve |
+|---|---|---|---|---|
+| 1 | `ModuleNotFoundError: No module named 'dns'`: el import de `dnspython` es obligatorio aunque solo lo use código muerto | `detectdga.py:10` | Rotura (en cuanto `dnspython` sale de los requisitos) | Ya prevista: tarea 5.1 (import perezoso) |
+| 2 | `DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal` | `DGAs/pizd.py:21` | Aviso; romperá en una versión futura de Python | Nueva casilla en 5.1. Debe mantener la instantánea idéntica |
+| 3 | `ResourceWarning: unclosed file`, por `pickle.dump(sc, open(...))` sin cerrar | `detectdga.py:564`, `:571` | Aviso | En 5.2, al reescribir esas líneas para `skops` |
+| 4 | `full.pkl` de 2021 no carga | `ml-data/full.pkl` | Rotura conocida (C2) | Fase 5 (reentrenar) |
+
+**No se ha encontrado ninguna rotura de API** de pandas 3.0, numpy 2 ni scikit-learn 1.9 en el código. Los
+`df.drop(..., inplace=True)` (`detectdga.py:524-549`) funcionan con pandas 3.0.
+
+### Extrapolación del tiempo de reentrenamiento
+
+Es una **hipótesis**: supone un coste lineal por dominio y no mide la memoria.
+
+- `--main`: unos 1,0 ms por dominio, una vez descontados unos 3 s fijos de carga, sobre unos 2,95 M de líneas
+  (1,5 M Tranco + 1,45 M de `dga.dom`) → **unos 50 min**.
+- `--secondary` y Umbrella: alrededor de 1 M de dominios cada uno → **unos 17 min cada uno**.
+- `--ngram` sobre 3,24 M de dominios: **pocos minutos**.
+- `--train full` sobre unos 2,4 M de filas: el coste de un Random Forest no es lineal → **entre 5 y 15 min**.
+- **Total estimado del reentrenamiento: entre 1,5 y 2 horas** en una máquina como la del sondeo. Se medirá de
+  verdad en 5.4.
+
+### Hallazgo colateral
+
+Tres familias, **pizd, pykspa2 y suppobox, generan dominios distintos según la hora del día**. Sin `-d`, la
+fecha es `datetime.now()` con hora, así que `-G`, `-C`, `-F` y la fuerza bruta dependen del momento en que se
+ejecutan. Por eso `docs/MVP.md` §5 contó 1.784 dominios con `-F`, frente a los 1.794 con `-d 2026-10-18`.
+
+Queda **fuera del alcance** de este documento: no es versiones ni datos. Las pruebas pasan siempre `-d`.
+Hay que decidir si se trata como un error, el «día» que entiende el usuario frente a la marca de tiempo que
+usa el algoritmo, cuando se aborde la fuerza bruta (`docs/FUTURE.md` §1.1.5).
+
+### Hallazgo colateral 2: dependencia de la zona horaria (al probar la CI con `act`)
+
+**pykspa2 y suppobox generan dominios distintos según la zona horaria de la máquina.** Usan `time.mktime`
+(`DGAs/pykspa2.py:22`, `DGAs/suppobox.py:25`), que interpreta la fecha en hora local.
+
+Para 2026-10-18, `lookdga.py -d 2026-10-18 -F` da:
+- 1.784 dominios en UTC y en America/New_York;
+- 1.794 en Europe/Madrid y en Asia/Tokyo.
+
+Otros cinco módulos también usan `time.mktime` (`pykspa1`, `qadars`, `qsnatcha`, `qsnatchb`, `kraken2`). Para
+esa fecha dan lo mismo en todas las zonas probadas; **hipótesis:** cambiarían cerca de los límites de su
+periodo.
+
+Consecuencias:
+- un mismo dominio puede atribuirse o no por fuerza bruta según dónde se ejecute;
+- la instantánea de las pruebas solo es reproducible con la zona horaria fija.
+
+Las pruebas fijan `TZ=UTC` (`tests/conftest.py`), y la instantánea se regeneró en UTC; antes estaba en CEST.
+Queda **fuera del alcance**, como el hallazgo anterior. Hay que decidir qué zona horaria es la correcta para
+cada familia (la de la víctima, UTC…) cuando se aborde la fuerza bruta (`docs/FUTURE.md` §1.1.5). En Windows,
+`time.tzset()` no existe: comprobarlo en la fase 7.
