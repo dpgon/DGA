@@ -76,57 +76,57 @@ Objetivo: fijar con pruebas lo que hoy funciona (`docs/MVP.md`), para que cualqu
 rompa se note. Todas las pruebas de esta fase pasan **sin tocar el código**.
 
 ### 1.1 Infraestructura
-- [ ] Crear `requirements-dev.txt` con `pytest` en una versión compatible con Python 3.9 (fijada).
-- [ ] Crear `pytest.ini`:
+- [x] Crear `requirements-dev.txt` con `pytest` en una versión compatible con Python 3.9 (fijada).
+- [x] Crear `pytest.ini`:
   - `testpaths = tests`;
   - marcadores `slow` (más de 30 s) y `model` (necesita `ml-data/full.pkl`);
   - opción por defecto `-m "not slow"`.
-- [ ] Crear `tests/conftest.py` con:
+- [x] Crear `tests/conftest.py` con:
   - una función que ejecute un script del repositorio por `subprocess` con `cwd` en la raíz y el entorno
     `PYTHONDONTWRITEBYTECODE=1`, y que devuelva salida estándar, salida de error y código de salida;
   - un *fixture* `nltk_data` que apunte `NLTK_DATA` a un directorio con el corpus `brown` (descargado una
     vez fuera del repositorio);
   - un *fixture* `strip_ansi` para comparar sin códigos de color.
-- [ ] Documentar en `CLAUDE.md` («Entorno, ejecución y pruebas») el comando exacto:
+- [x] Documentar en `CLAUDE.md` («Entorno, ejecución y pruebas») el comando exacto:
       `pip install -r requirements-dev.txt && pytest` y `pytest -m slow` para las lentas.
 
 ### 1.2 Caracterización de `lookdga.py` (`tests/test_lookdga.py`)
-- [ ] `-L`: 50 líneas; la primera empieza por `banjori` y contiene `Banjori malware`.
-- [ ] `-m zloader -I`: contiene `Max samples per date: 32` y `Domain regular expresion: [a-y]{20}.com`.
-- [ ] `-m tinba -n 5 -G`: los cinco dominios exactos de `docs/MVP.md` §3, en orden.
-- [ ] `-d 2026-10-18 -n 3 -G`: 148 líneas de dominio (49 × 3 + 1 de tempedreve).
-- [ ] `-d 2026-10-18 -n 100 -C`: 5.000 líneas de datos (descartando las que empiezan por `*`) y 50 familias
+- [x] `-L`: 50 líneas; la primera empieza por `banjori` y contiene `Banjori malware`.
+- [x] `-m zloader -I`: contiene `Max samples per date: 32` y `Domain regular expresion: [a-y]{20}.com`.
+- [x] `-m tinba -n 5 -G`: los cinco dominios exactos de `docs/MVP.md` §3, en orden.
+- [x] `-d 2026-10-18 -n 3 -G`: 148 líneas de dominio (49 × 3 + 1 de tempedreve).
+- [x] `-d 2026-10-18 -n 100 -C`: 5.000 líneas de datos (descartando las que empiezan por `*`) y 50 familias
       distintas en la segunda columna.
-- [ ] `-d 2026-10-18 -F`: 1.784 dominios, ninguno repetido.
-- [ ] `-D nvfowikhevmy.net`: la salida incluye `Tinba backdoor`. No se codifica el falso positivo de
+- [x] `-d 2026-10-18 -F`: 1.794 dominios, ninguno repetido (en `docs/MVP.md` salió 1.784 porque se ejecutó sin `-d`: pizd, pykspa2 y suppobox dependen de la hora).
+- [x] `-D nvfowikhevmy.net`: la salida incluye `Tinba backdoor`. No se codifica el falso positivo de
       `google.com`, que es una limitación conocida y no un comportamiento que haya que conservar.
-- [ ] `-m noexiste -I`: contiene `Unknown malware name`.
-- [ ] `-m tinba -B nvfowikhevmy.net` (`slow`): contiene `tinba: Domain nvfowikhevmy.net with config 1 is in
+- [x] `-m noexiste -I`: contiene `Unknown malware name`.
+- [x] `-m tinba -B nvfowikhevmy.net` (`slow`): contiene `tinba: Domain nvfowikhevmy.net with config 1 is in
       10 position`.
 
 ### 1.3 Instantánea y fidelidad de generadores (`tests/test_generators.py`)
-- [ ] Generar con el código actual `tests/data/snapshot_2026-10-18.csv`: los 3 primeros dominios de cada
+- [x] Generar con el código actual `tests/data/snapshot_2026-10-18.csv`: los 3 primeros dominios de cada
       familia y semilla de `configs` para la fecha 2026-10-18 (`familia,config,posición,dominio`). Documentar
       en la cabecera del fichero con qué commit se generó.
-- [ ] Prueba: el código reproduce exactamente la instantánea. Es la que avisará de cualquier cambio en los
+- [x] Prueba: el código reproduce exactamente la instantánea. Es la que avisará de cualquier cambio en los
       generadores con el salto de versiones de la fase 5.
-- [ ] Extraer `tests/data/referencia_netlab.csv`: para las 11 variantes con confirmación externa (simda,
+- [x] Extraer `tests/data/referencia_netlab.csv`: para las 11 variantes con confirmación externa (simda,
       ramnit, banjori, shiotob, pykspa2, tinba, fobber1, fobber2, dircrypt, pizd, vawtrak3), hasta 20
       dominios por variante presentes a la vez en `ml-data/mydgas.dom` y `ml-data/dga.dom`, con su semilla y
       su fecha.
-- [ ] Prueba: cada dominio de la referencia aparece entre los generados para su familia, semilla y fecha.
-- [ ] Prueba: las 50 variantes generan al menos un dominio sin lanzar ninguna excepción para 2026-10-18.
+- [x] Prueba: cada dominio de la referencia aparece entre los generados para su familia, semilla y fecha.
+- [x] Prueba: las 50 variantes generan al menos un dominio sin lanzar ninguna excepción para 2026-10-18.
 
 ### 1.4 Caracterización del detector (`tests/test_check.py`, marcador `model`)
-- [ ] `--check` con los cinco dominios del README: `ughdnmmgdpscliraqnpl.com`, `nvfowikhevmy.net` y
+- [x] `--check` con los cinco dominios del README: `ughdnmmgdpscliraqnpl.com`, `nvfowikhevmy.net` y
       `uquslaigwaannie.ddns.net` → `DGA generated`; `google.com` y `facebook.com` → `No DGA domain`.
-- [ ] `-b --check nvfowikhevmy.net` (`slow`): contiene `Detected as tinba in 10 position`.
+- [x] `-b --check nvfowikhevmy.net` (`slow`): contiene `Detected as tinba in 10 position`.
 
 ### 1.5 Caracterización de `statsdga.py` (`tests/test_statsdga.py`)
-- [ ] Opción 1 con 50 muestras (entrada `1\n50\n0\n`): contiene `dircrypt has a limit of 30 domains in a
+- [x] Opción 1 con 50 muestras (entrada `1\n50\n0\n`): contiene `dircrypt has a limit of 30 domains in a
       date`.
-- [ ] Opción 2 con 50 muestras: contiene `kraken2: 50 generated and 45 unique`.
-- [ ] Opción 8 con DGA (`8\n50\nn\n0\n`): la línea `All DGA:` va seguida de tres líneas de longitud media,
+- [x] Opción 2 con 50 muestras: contiene `kraken2: 50 generated and 45 unique`.
+- [x] Opción 8 con DGA (`8\n50\nn\n0\n`): la línea `All DGA:` va seguida de tres líneas de longitud media,
       mínima y máxima. Se comprueba la forma, no los valores.
 
 ### 1.6 Sondeo de compatibilidad (rama desechable `sondeo/versiones-2026`, no se une)

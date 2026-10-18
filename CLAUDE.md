@@ -61,13 +61,23 @@ docs/           documentación de la puesta a punto (en español)
 - **Sin red:** si el corpus `brown` de NLTK ya está descargado, exporta `NLTK_DATA=<ruta>` y no se intentará
   descargar.
 - **Compilación:** no hay.
-- **Pruebas: no existen.** No hay `tests/`, `pytest` ni CI. Hasta que lleguen (etapa 1.1.11 de
-  `docs/FUTURE.md`):
-  - comprueba cada cambio ejecutando a mano los criterios de aceptación de `docs/MVP.md` que afecte;
-  - di qué ejecutaste y qué resultado viste;
-  - si algo no lo ejecutaste, dilo como «no verificado». Nunca lo des por bueno.
-- Si añades pruebas, ponlas en `tests/` con `pytest` y documenta en `README.md` el comando exacto. Esa es la
-  convención decidida para la etapa 1.1, no algo que ya exista.
+- **Pruebas** (`tests/`, `pytest`), en el entorno 2021 y desde la raíz del repositorio:
+  ```bash
+  pip install -r requirements-dev.txt
+  NLTK_DATA=<ruta con corpora/brown> pytest      # por defecto, sin las lentas (~2,5 min bajo Rosetta)
+  NLTK_DATA=<ruta con corpora/brown> pytest -m slow   # las lentas (> 30 s cada una)
+  ```
+  - Sin `NLTK_DATA`, las pruebas que necesitan el corpus se saltan; nunca lo descargan.
+  - Marcadores: `slow` (más de 30 s) y `model` (necesita `ml-data/full.pkl` y el diccionario).
+  - Las de `tests/test_lookdga.py`, `test_generators.py`, `test_check.py` y `test_statsdga.py` son de
+    **caracterización**: fijan lo que hoy funciona según `docs/MVP.md`. Si una falla tras un cambio, has roto
+    algo que funcionaba; no la ajustes sin entender por qué.
+  - `tests/data/snapshot_2026-10-18.csv` fija los 3 primeros dominios de cada familia y semilla. Ningún
+    cambio de versiones debe alterarla.
+  - Con `-G`, `-C` o `-F`, pasa siempre `-d`: sin fecha se usa la hora actual, y pizd, pykspa2 y suppobox
+    cambian de dominios según la hora.
+- Lo que las pruebas no cubren, compruébalo a mano con los criterios de `docs/MVP.md`. Di qué ejecutaste y qué
+  viste; lo que no ejecutaste, llámalo «no verificado».
 
 ## Estándares de código que el proyecto ya sigue
 
