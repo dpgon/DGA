@@ -130,16 +130,16 @@ rompa se note. Todas las pruebas de esta fase pasan **sin tocar el código**.
       mínima y máxima. Se comprueba la forma, no los valores.
 
 ### 1.6 Sondeo de compatibilidad (rama desechable `sondeo/versiones-2026`, no se une)
-- [ ] Crear un entorno 2026 fuera del repositorio (Python 3.13, últimas scikit-learn, pandas, numpy y nltk,
+- [x] Crear un entorno 2026 fuera del repositorio (Python 3.13, últimas scikit-learn, pandas, numpy y nltk,
       más `pytest`).
-- [ ] Ejecutar en él `pytest -m "not model"` y anotar cada fallo con su traza.
-- [ ] En una **copia del repositorio** fuera del árbol, con `ml-data/` recortado a 10.000 líneas por fichero
+- [x] Ejecutar en él `pytest -m "not model"` y anotar cada fallo con su traza.
+- [x] En una **copia del repositorio** fuera del árbol, con `ml-data/` recortado a 10.000 líneas por fichero
       `.dom`:
   - ejecutar `--ngram`, `--main`, `--train full` y `--check`;
   - anotar cada error de API (pandas 3.0, numpy 2, nltk 3.9) con su archivo y línea.
-- [ ] Medir el tiempo de `--ngram`, `--main` y `--train full` con 10.000 dominios y extrapolar a los
+- [x] Medir el tiempo de `--ngram`, `--main` y `--train full` con 10.000 dominios y extrapolar a los
       tamaños reales (unos 3 M en `--main`).
-- [ ] Anotar los resultados (lista de roturas, tiempos, extrapolación) en un anexo «Resultados del sondeo» al
+- [x] Anotar los resultados (lista de roturas, tiempos, extrapolación) en un anexo «Resultados del sondeo» al
       final de `docs/CORRECCIONES.md`, sin cambiar sus decisiones. Hacer commit de ese anexo en la rama de
       la fase 1.
 
@@ -437,9 +437,14 @@ Depende de: el anexo del sondeo (1.6), las fases 2–4 y los datos del juego `20
 - [ ] Generar `requirements-lock.txt` con `uv pip compile requirements.txt --universal --python-version 3.12
       -o requirements-lock.txt`.
 - [ ] Actualizar `requirements-dev.txt` a un `pytest` actual.
-- [ ] Corregir, una por una, las roturas de API del anexo del sondeo, cada una con su archivo y línea (p. ej.
-      los `df.drop(..., inplace=True)` de `detectdga.py:524-549,591-616` con pandas 3.0). Una casilla por
-      rotura, añadida aquí al empezar la fase.
+- [ ] Corregir las roturas y avisos del anexo del sondeo (`docs/CORRECCIONES.md`). No se encontró ninguna
+      rotura de API de pandas 3.0, numpy 2 ni scikit-learn 1.9; los `df.drop(..., inplace=True)` funcionan. La
+      rotura n.º 1 (`dnspython`) es la casilla anterior; la n.º 3 (`ResourceWarning`) se resuelve en 5.2. Queda:
+  - [ ] `DGAs/pizd.py:21`: sustituir `datetime.utcfromtimestamp(0)` (obsoleto) por un equivalente con zona
+        horaria que dé **el mismo resultado**. Lo comprueban la instantánea (1.3) y la referencia de Netlab de
+        pizd.
+- [ ] Si al empezar la fase hay versiones más nuevas que las del sondeo, repetir el sondeo de 1.6 con ellas y
+      añadir aquí una casilla por cada rotura nueva.
 - [ ] **Verificar regresiones:** en el entorno 2026, `pytest -m "not model"` pasa. En particular, la
       instantánea de generadores (1.3) es **idéntica**: el salto de versiones no debe cambiar ningún dominio
       generado.
