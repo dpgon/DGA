@@ -11,6 +11,7 @@ from dns import resolver
 from ngram import ngrams
 from binascii import crc32
 from os.path import isfile
+from sys import exit, stderr
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
@@ -23,6 +24,10 @@ except:
     nltk.download('brown')
 
 etlds = []
+
+# Data files shared by several functions, defined once so the checks and the reads cannot diverge (C6)
+NGRAM = "ml-data/tranco"
+TRANCO_TEST2 = "ml-data/tranco-test2.dom"
 
 
 def loadetlds():
@@ -225,7 +230,8 @@ def loadngram(filename):
     try:
         ng.load(filename)
         return ng
-    except:
+    except Exception as e:
+        print(f"Can't load the n-gram dictionary {filename}.ng1-ng4: {e}", file=stderr)
         return None
 
 
@@ -254,7 +260,7 @@ def gini(x):
 
 def createmaindataset():
     loadetlds()
-    ng = loadngram("ml-data/tranco")
+    ng = loadngram(NGRAM)
     LP = LegalitySyllableTokenizer(brown.words())
 
     # Open noDGA domains
@@ -364,11 +370,11 @@ def createmaindataset():
 
 def createtestdataset():
     loadetlds()
-    ng = loadngram("ml-data/tranco")
+    ng = loadngram(NGRAM)
     LP = LegalitySyllableTokenizer(brown.words())
 
     # Open noDGA domains
-    with open("ml-data/tranco-test2.dom") as f:
+    with open(TRANCO_TEST2) as f:
         lines = f.readlines()
 
     domains = []
@@ -475,7 +481,7 @@ def createtestdataset():
 
 def createalexadataset():
     loadetlds()
-    ng = loadngram("ml-data/tranco")
+    ng = loadngram(NGRAM)
     LP = LegalitySyllableTokenizer(brown.words())
 
     # Open noDGA domains
@@ -737,7 +743,7 @@ def classify(domlist, model, sc, ng, LP):
 
 def testdomains(domlist, brute=False):
     loadetlds()
-    ng = loadngram("ml-data/tranco")
+    ng = loadngram(NGRAM)
     LP = LegalitySyllableTokenizer(brown.words())
 
     # Load scaler and model
@@ -778,12 +784,22 @@ def testdomains(domlist, brute=False):
             print(dga.Col.WARNING + f"  |__ {domain}: {reason}" + dga.Col.END)
 
 
+def missingngram():
+    '''
+    List the files of the standard n-gram dictionary that don't exist
+    :return: list of missing files, empty if the dictionary is complete
+    '''
+    return [f"{NGRAM}.ng{n}" for n in range(1, 5) if not isfile(f"{NGRAM}.ng{n}")]
+
+
 def checktranco():
-    if isfile('ml-data/tranco.ng1') and isfile('ml-data/tranco.ng1') and \
-            isfile('ml-data/tranco.ng1') and isfile('ml-data/tranco.ng1'):
-        return True
-    else:
-        return False
+    return not missingngram()
+
+
+def tranconotfound():
+    print(f"Tranco dictionary not found at ml-data (missing {', '.join(missingngram())}). "
+          f"Try to create it with --ngram option.")
+    exit(1)
 
 
 def main():
@@ -820,16 +836,16 @@ def main():
             else:
                 print("Files ml-data/tranco-main.dom and/or ml-data/dga.dom not found")
         else:
-            print("Tranco dictionary not found at ml-data. Try to create it with --ngram option.")
+            tranconotfound()
     elif args.secondary:
         # Create the secondary test dataset
         if checktranco():
-            if isfile("ml-data/tranco-secondary.dom") and isfile("ml-data/mydgas.dom"):
+            if isfile(TRANCO_TEST2) and isfile("ml-data/mydgas.dom"):
                 createtestdataset()
             else:
-                print("Files ml-data/tranco-secondary.dom and/or ml-data/mydgas.dom not found")
+                print(f"Files {TRANCO_TEST2} and/or ml-data/mydgas.dom not found")
         else:
-            print("Tranco dictionary not found at ml-data. Try to create it with --ngram option.")
+            tranconotfound()
     elif args.alexa:
         # Create the Alexa test dataset
         if checktranco():
@@ -838,7 +854,7 @@ def main():
             else:
                 print("File ml-data/alexa.dom not found")
         else:
-            print("Tranco dictionary not found at ml-data. Try to create it with --ngram option.")
+            tranconotfound()
     elif args.ngram:
         # Create the standard Tranco ngram dictionary
         if isfile("ml-data/tranco-ngram.dom"):

@@ -32,17 +32,18 @@ def strip(text):
     return ANSI.sub('', text)
 
 
-def run(script, *args, stdin=None, timeout=900):
+def run(script, *args, stdin=None, timeout=900, cwd=ROOT):
     '''
-    Run a script of the repository from its root, as the README says
+    Run a script of the repository, by default from its root as the README says
     :param script: script name, e.g. lookdga.py
     :param args: command line arguments
     :param stdin: text sent to the standard input
     :param timeout: seconds before failing
+    :param cwd: working directory; the scripts resolve ml-data/ and DGAs/wordlist/ against it
     :return: CompletedProcess with stdout and stderr already without colour codes
     '''
     env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
-    proc = subprocess.run([sys.executable, script, *args], cwd=ROOT, env=env, input=stdin,
+    proc = subprocess.run([sys.executable, join(ROOT, script), *args], cwd=cwd, env=env, input=stdin,
                           capture_output=True, text=True, timeout=timeout)
     proc.stdout = strip(proc.stdout)
     proc.stderr = strip(proc.stderr)
@@ -64,3 +65,29 @@ def nltk_data():
 @pytest.fixture
 def strip_ansi():
     return strip
+
+
+def head(src, dst, lines):
+    with open(src) as fin, open(dst, "w") as fout:
+        for c, line in enumerate(fin):
+            if c >= lines:
+                break
+            fout.write(line)
+
+
+@pytest.fixture
+def repo_tmp(tmp_path):
+    '''
+    Working directory with a link to DGAs/ and a small ml-data/: the real n-gram dictionary and the first lines
+    of the domain lists. Scripts run with run(..., cwd=repo_tmp) write there instead of the real ml-data/.
+    '''
+    os.symlink(join(ROOT, "DGAs"), tmp_path / "DGAs")
+    data = tmp_path / "ml-data"
+    data.mkdir()
+    for n in range(1, 5):
+        os.symlink(join(ROOT, "ml-data", f"tranco.ng{n}"), data / f"tranco.ng{n}")
+    for name in ["tranco-main.dom", "tranco-test2.dom", "mydgas.dom"]:
+        head(join(ROOT, "ml-data", name), data / name, 20)
+    # dga.dom starts with a comment header: keep it and 20 data lines
+    head(join(ROOT, "ml-data", "dga.dom"), data / "dga.dom", 40)
+    return tmp_path

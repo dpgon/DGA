@@ -199,20 +199,20 @@ Objetivo: que el detector y el corpus den resultados fiables antes de usarlos pa
       `statsdga.py`, que usa `dga.create()` con `main=False`, también.
 
 ### 2.3 `--secondary` usa el fichero que existe (C6)
-- [ ] Añadir a `tests/conftest.py` un *fixture* `repo_tmp`: un directorio temporal con un enlace a `DGAs/` y
+- [x] Añadir a `tests/conftest.py` un *fixture* `repo_tmp`: un directorio temporal con un enlace a `DGAs/` y
       un `ml-data/` con ficheros mínimos (`tranco.ng1-4` reales, `tranco-test2.dom` de 20 líneas,
       `mydgas.dom` de 20 líneas).
-- [ ] Escribir antes en `tests/test_cli.py`: `detectdga.py --secondary` en `repo_tmp` crea
+- [x] Escribir antes en `tests/test_cli.py`: `detectdga.py --secondary` en `repo_tmp` crea
       `ml-data/secondary.pkl` y no imprime `not found`. Debe fallar.
-- [ ] Definir en `detectdga.py` una sola constante con la ruta `ml-data/tranco-test2.dom` y usarla en
+- [x] Definir en `detectdga.py` una sola constante con la ruta `ml-data/tranco-test2.dom` y usarla en
       `createtestdataset()` (`:356`) y en `main()` (`:775-778`).
 
 ### 2.4 Comprobación completa del diccionario (C9)
-- [ ] Escribir antes en `tests/test_cli.py`: en `repo_tmp`, al quitar `tranco.ng2`, `ng3` o `ng4` por turno,
+- [x] Escribir antes en `tests/test_cli.py`: en `repo_tmp`, al quitar `tranco.ng2`, `ng3` o `ng4` por turno,
       `--main` termina con un mensaje que nombra el fichero que falta y con un código de salida distinto
       de 0. Debe fallar.
-- [ ] Corregir `checktranco()` (`detectdga.py:729-734`) para comprobar los cuatro ficheros.
-- [ ] Corregir `loadngram()` (`:203-214`): en lugar de devolver `None` en silencio, informar de qué fichero
+- [x] Corregir `checktranco()` (`detectdga.py:729-734`) para comprobar los cuatro ficheros.
+- [x] Corregir `loadngram()` (`:203-214`): en lugar de devolver `None` en silencio, informar de qué fichero
       falló y por qué.
 
 ### 2.5 Nada de red al importar (C11)
