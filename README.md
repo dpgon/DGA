@@ -44,8 +44,15 @@ Just clone the repository and install the dependencies with pip. It is preferabl
 > `lookdga.py` only uses the standard library and needs none of these packages. See [`docs/MVP.md`](docs/MVP.md) §0.
 
 Run every command **from the repository root**: all paths (`ml-data/…`, `DGAs/wordlist/…`) are relative.
-The first run of `detectdga.py` or `statsdga.py` downloads the NLTK `brown` corpus. To work offline, download
-it beforehand and set `NLTK_DATA`.
+`detectdga.py` and `statsdga.py` need the NLTK `brown` corpus (to count syllables). They never download it
+themselves; install it once after the dependencies:
+
+```
+$ python -m nltk.downloader -d ~/nltk_data brown
+```
+
+To keep it somewhere else, use that directory instead and set `NLTK_DATA` to it. If the corpus is missing,
+the scripts stop and print this command.
 
 ## lookdga.py
 This tool can calculate the domains of various malware that use DGA. It can also detect by domain possible DGA using regular expressions, and finally, it can bruteforce it in order to detect the day and order of generation.

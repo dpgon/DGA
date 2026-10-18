@@ -216,17 +216,17 @@ Objetivo: que el detector y el corpus den resultados fiables antes de usarlos pa
       falló y por qué.
 
 ### 2.5 Nada de red al importar (C11)
-- [ ] Crear el módulo `nlpdata.py` con una función que compruebe el corpus `brown` (`nltk.data.find`) y, si
+- [x] Crear el módulo `nlpdata.py` con una función que compruebe el corpus `brown` (`nltk.data.find`) y, si
       falta, termine con un mensaje que indique el comando de instalación
       (`python -m nltk.downloader -d <dir> brown`, más `NLTK_DATA`).
-- [ ] Escribir antes `tests/test_offline.py`. Las dos pruebas deben fallar:
+- [x] Escribir antes `tests/test_offline.py`. Las dos pruebas deben fallar:
   - con `nltk.download` sustituido por una función que falla, importar `detectdga` no la llama;
   - `statsdga.py` ejecutado con un `NLTK_DATA` vacío y la opción 8 no intenta descargar y muestra el mensaje.
-- [ ] Quitar la descarga a nivel de módulo de `detectdga.py:20-23` y `statsdga.py:10-13`.
-- [ ] Llamar a la comprobación justo antes de cada `LegalitySyllableTokenizer(brown.words())`: en
+- [x] Quitar la descarga a nivel de módulo de `detectdga.py:20-23` y `statsdga.py:10-13`.
+- [x] Llamar a la comprobación justo antes de cada `LegalitySyllableTokenizer(brown.words())`: en
       `detectdga.py`, `createmaindataset`, `createtestdataset`, `createalexadataset` y `testdomains`; en
       `statsdga.py`, `syll`.
-- [ ] Actualizar la sección «Install» de `README.md` (inglés, en la voz del autor): el corpus se descarga con
+- [x] Actualizar la sección «Install» de `README.md` (inglés, en la voz del autor): el corpus se descarga con
       el comando anterior y la primera ejecución ya no lo hace sola.
 
 ### 2.6 Verificación de la fase

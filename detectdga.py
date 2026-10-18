@@ -1,5 +1,4 @@
 import argparse
-import nltk
 import numpy as np
 import pandas as pd
 import dga
@@ -9,6 +8,7 @@ from nltk.tokenize import LegalitySyllableTokenizer
 from nltk.corpus import brown
 from dns import resolver
 from ngram import ngrams
+from nlpdata import requirebrown
 from binascii import crc32
 from os.path import isfile
 from sys import exit, stderr
@@ -17,11 +17,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 
-
-try:
-    brown.words
-except:
-    nltk.download('brown')
 
 etlds = []
 
@@ -261,6 +256,7 @@ def gini(x):
 def createmaindataset():
     loadetlds()
     ng = loadngram(NGRAM)
+    requirebrown()
     LP = LegalitySyllableTokenizer(brown.words())
 
     # Open noDGA domains
@@ -371,6 +367,7 @@ def createmaindataset():
 def createtestdataset():
     loadetlds()
     ng = loadngram(NGRAM)
+    requirebrown()
     LP = LegalitySyllableTokenizer(brown.words())
 
     # Open noDGA domains
@@ -482,6 +479,7 @@ def createtestdataset():
 def createalexadataset():
     loadetlds()
     ng = loadngram(NGRAM)
+    requirebrown()
     LP = LegalitySyllableTokenizer(brown.words())
 
     # Open noDGA domains
@@ -744,6 +742,7 @@ def classify(domlist, model, sc, ng, LP):
 def testdomains(domlist, brute=False):
     loadetlds()
     ng = loadngram(NGRAM)
+    requirebrown()
     LP = LegalitySyllableTokenizer(brown.words())
 
     # Load scaler and model
