@@ -539,3 +539,25 @@ ejecutan. Por eso `docs/MVP.md` §5 contó 1.784 dominios con `-F`, frente a los
 Queda **fuera del alcance** de este documento: no es versiones ni datos. Las pruebas pasan siempre `-d`.
 Hay que decidir si se trata como un error, el «día» que entiende el usuario frente a la marca de tiempo que
 usa el algoritmo, cuando se aborde la fuerza bruta (`docs/FUTURE.md` §1.1.5).
+
+### Hallazgo colateral 2: dependencia de la zona horaria (al probar la CI con `act`)
+
+**pykspa2 y suppobox generan dominios distintos según la zona horaria de la máquina.** Usan `time.mktime`
+(`DGAs/pykspa2.py:22`, `DGAs/suppobox.py:25`), que interpreta la fecha en hora local.
+
+Para 2026-10-18, `lookdga.py -d 2026-10-18 -F` da:
+- 1.784 dominios en UTC y en America/New_York;
+- 1.794 en Europe/Madrid y en Asia/Tokyo.
+
+Otros cinco módulos también usan `time.mktime` (`pykspa1`, `qadars`, `qsnatcha`, `qsnatchb`, `kraken2`). Para
+esa fecha dan lo mismo en todas las zonas probadas; **hipótesis:** cambiarían cerca de los límites de su
+periodo.
+
+Consecuencias:
+- un mismo dominio puede atribuirse o no por fuerza bruta según dónde se ejecute;
+- la instantánea de las pruebas solo es reproducible con la zona horaria fija.
+
+Las pruebas fijan `TZ=UTC` (`tests/conftest.py`), y la instantánea se regeneró en UTC; antes estaba en CEST.
+Queda **fuera del alcance**, como el hallazgo anterior. Hay que decidir qué zona horaria es la correcta para
+cada familia (la de la víctima, UTC…) cuando se aborde la fuerza bruta (`docs/FUTURE.md` §1.1.5). En Windows,
+`time.tzset()` no existe: comprobarlo en la fase 7.

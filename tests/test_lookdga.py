@@ -48,9 +48,10 @@ def test_create_corpus():
 
 def test_firewall():
     # Always with -d: without it the date is datetime.now() with the time of day, and pizd, pykspa2 and
-    # suppobox generate different domains depending on the hour (docs/MVP.md section 5 got 1784 that way)
+    # suppobox generate different domains depending on the hour. The count also depends on the time zone
+    # (pykspa2 and suppobox use time.mktime): 1784 in UTC, which conftest.py enforces; 1794 in CEST
     domains = datalines(run("lookdga.py", "-d", DATE, "-F").stdout)
-    assert len(domains) == 1794
+    assert len(domains) == 1784
     assert len(set(domains)) == len(domains)
 
 

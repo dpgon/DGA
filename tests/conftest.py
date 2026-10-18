@@ -2,6 +2,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 from os.path import abspath, dirname, isdir, join
 
 import pytest
@@ -12,6 +13,14 @@ ANSI = re.compile(r'\x1b\[[0-9;]*m')
 # The project modules (dga, ngram, DGAs) live in the repository root, not in an installed package
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
+
+# Several generators use time.mktime(), which works in local time: pykspa2 and suppobox give different
+# domains in different time zones (and pykspa1, qadars, qsnatcha, qsnatchb, kraken2 may near their period
+# boundaries). Tests always run in UTC, here and in the scripts they launch, so results do not depend on the
+# machine. time.tzset() does not exist on Windows; there the TZ variable only reaches the launched scripts.
+os.environ["TZ"] = "UTC"
+if hasattr(time, "tzset"):
+    time.tzset()
 
 
 def strip(text):

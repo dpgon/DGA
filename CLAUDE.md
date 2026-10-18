@@ -76,6 +76,16 @@ docs/           documentación de la puesta a punto (en español)
     cambio de versiones debe alterarla.
   - Con `-G`, `-C` o `-F`, pasa siempre `-d`: sin fecha se usa la hora actual, y pizd, pykspa2 y suppobox
     cambian de dominios según la hora.
+  - **Las pruebas se ejecutan en UTC** (`tests/conftest.py` fija `TZ=UTC`). pykspa2 y suppobox usan
+    `time.mktime`, que trabaja en hora local, y dan dominios distintos según la zona horaria de la máquina. Si
+    regeneras la instantánea, hazlo con `TZ=UTC`.
+- **CI en local** con `act` (no se sube nada a GitHub durante la actualización). Hace falta pasarle el
+  `PATH` de la imagen, porque `act` lo pierde cuando `setup-python` añade sus rutas y entonces las acciones
+  de Node, como `actions/cache`, no encuentran `node`:
+  ```bash
+  act push -j tests-2021 -P ubuntu-22.04=catthehacker/ubuntu:act-22.04 --container-architecture linux/amd64 \
+    --env PATH=/opt/acttoolcache/node/24.19.0/x64/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+  ```
 - Lo que las pruebas no cubren, compruébalo a mano con los criterios de `docs/MVP.md`. Di qué ejecutaste y qué
   viste; lo que no ejecutaste, llámalo «no verificado».
 

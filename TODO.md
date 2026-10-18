@@ -149,9 +149,9 @@ rompa se note. Todas las pruebas de esta fase pasan **sin tocar el código**.
   - `pip install -r requirements.txt -r requirements-dev.txt`;
   - caché del corpus `brown` (`python -m nltk.downloader -d ~/nltk_data brown`);
   - `pytest` (sin `slow`).
-- [ ] Instalar `act` en la máquina del autor (`brew install act`; Docker ya está en `/usr/local/bin/docker`),
+- [x] Instalar `act` en la máquina del autor (`brew install act`; Docker ya está en `/usr/local/bin/docker`),
       con su visto bueno.
-- [ ] **Verificar en local:** `act -j <trabajo> --container-architecture linux/amd64` ejecuta el workflow y
+- [x] **Verificar en local:** `act -j <trabajo> --container-architecture linux/amd64` ejecuta el workflow y
       pasa en verde. La comprobación en GitHub queda para la fase 7.
 
 **Aceptación de la fase 1:** `pytest` y `pytest -m slow` pasan en el entorno 2021 sin haber cambiado el
@@ -529,7 +529,8 @@ Depende de: el anexo del sondeo (1.6), las fases 2–4 y los datos del juego `20
 - [ ] **Windows:** no se puede verificar en local. Queda para la fase 7, con estas comprobaciones:
   - las rutas `ml-data/…` y `DGAs/wordlist/…` funcionan;
   - los colores ANSI no rompen las pruebas;
-  - los generadores con `ctypes` dan la instantánea de 1.3.
+  - los generadores con `ctypes` dan la instantánea de 1.3;
+  - la instantánea se reproduce con `TZ=UTC` aunque Windows no tenga `time.tzset()` (ver `tests/conftest.py`).  Si no, fijar la zona horaria en el workflow.
 
 **Aceptación de la fase 5:**
 - en Python 3.12 y 3.13, en Linux (`act`) y en macOS arm64 (local), la instalación con
