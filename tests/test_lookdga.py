@@ -2,6 +2,8 @@
 Characterization tests of lookdga.py: they pin the behaviour verified in docs/MVP.md (sections 1-7).
 They must pass with the code as it is; if one fails after a change, something that worked is broken.
 '''
+import re
+
 import pytest
 
 from conftest import run
@@ -10,7 +12,7 @@ DATE = "2026-10-18"
 
 
 def datalines(text):
-    # -C prints status lines starting with "*" mixed with the CSV (docs/MVP.md section 4)
+    # -G prints status lines starting with "*" on stdout before the domains
     return [line for line in text.splitlines() if line and not line.startswith("*")]
 
 
@@ -41,7 +43,7 @@ def test_generate_all_families():
 
 def test_create_corpus():
     out = run("lookdga.py", "-d", DATE, "-n", "100", "-C").stdout
-    rows = [line.split(",") for line in datalines(out)]
+    rows = [line.split(",") for line in out.splitlines()]
     assert len(rows) == 5000
     assert len({row[1] for row in rows}) == 50
 
@@ -70,3 +72,13 @@ def test_unknown_family():
 def test_bruteforce_tinba():
     out = run("lookdga.py", "-m", "tinba", "-B", "nvfowikhevmy.net").stdout
     assert "tinba: Domain nvfowikhevmy.net with config 1 is in 10 position" in out
+
+
+def test_create_stdout_is_clean_csv():
+    # C13: -C is redirected to a file (README), so stdout must only carry CSV rows; status goes to stderr
+    proc = run("lookdga.py", "-m", "banjori", "-n", "2", "-C")
+    rows = proc.stdout.splitlines()
+    assert len(rows) == 2
+    assert all(re.match(r'^[^,]+,[^,]+,[^,]*,\d{4}-\d{2}-\d{2}$', row) for row in rows)
+    assert "* Generating domains for: banjori" in proc.stderr
+    assert "* Generated 2 domains" in proc.stderr

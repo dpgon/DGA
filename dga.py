@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import DGAs
 import re
+import sys
 from DGAs import *
 
 
@@ -235,7 +236,8 @@ def generate(malware, date, nr, seed, main=False, limit=True):
 
 def create(malware, date, nr, seed, main=False, short=False, configs=2):
     if main:
-        print(Col.INFO + f"* Generating domains for: {' - '.join(malware)}" + Col.END)
+        # Status lines go to stderr: with main=True the CSV rows on stdout are redirected to a file (README)
+        print(Col.INFO + f"* Generating domains for: {' - '.join(malware)}" + Col.END, file=sys.stderr)
     total = 0
     domains = []
     for name in malware:
@@ -280,6 +282,6 @@ def create(malware, date, nr, seed, main=False, short=False, configs=2):
                     tempdate -= timedelta(family.use_date)
                 del family
     if main:
-        print(Col.INFO + f"* Generated {total} domains" + Col.END)
+        print(Col.INFO + f"* Generated {total} domains" + Col.END, file=sys.stderr)
     else:
         return domains

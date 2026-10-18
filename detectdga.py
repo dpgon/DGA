@@ -1,5 +1,4 @@
 import argparse
-import nltk
 import numpy as np
 import pandas as pd
 import dga
@@ -9,20 +8,21 @@ from nltk.tokenize import LegalitySyllableTokenizer
 from nltk.corpus import brown
 from dns import resolver
 from ngram import ngrams
+from nlpdata import requirebrown
 from binascii import crc32
 from os.path import isfile
+from sys import exit, stderr
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 
 
-try:
-    brown.words
-except:
-    nltk.download('brown')
-
 etlds = []
+
+# Data files shared by several functions, defined once so the checks and the reads cannot diverge (C6)
+NGRAM = "ml-data/tranco"
+TRANCO_TEST2 = "ml-data/tranco-test2.dom"
 
 
 def loadetlds():
@@ -116,16 +116,31 @@ def sldtld(domain):
     :param domain: domain to check and split
     :return: SLD and TLD or None if not valid or SLD less of 4 chars
     '''
+    sld, tld, reason = sldtldreason(domain)
+    return sld, tld
+
+
+def sldtldreason(domain):
+    '''
+    Split the SLD and the TLD, telling why a domain is not valid
+    :param domain: domain to check and split
+    :return: SLD, TLD and None, or None, None and the reason if not valid
+    '''
     common = ["www1", "www2", "mail"]
     sld = domain.split('.')[0]
     if sld in common:
         domain = ".".join(domain.split('.')[1:])
         sld = domain.split('.')[0]
     tld = ".".join(domain.split('.')[1:])
-    if tld and tld in etlds and len(sld) > 3:
-        return sld, tld
+    if not tld or tld not in etlds:
+        labels = tld.split('.')
+        if any(".".join(labels[c:]) in etlds for c in range(1, len(labels))):
+            return None, None, "subdomain or www. prefix (only registrable domains are evaluated)"
+        return None, None, "unknown suffix"
+    elif len(sld) <= 3:
+        return None, None, "SLD of 3 characters or fewer"
     else:
-        return None, None
+        return sld, tld, None
 
 
 def vcn(domain):
@@ -210,7 +225,8 @@ def loadngram(filename):
     try:
         ng.load(filename)
         return ng
-    except:
+    except Exception as e:
+        print(f"Can't load the n-gram dictionary {filename}.ng1-ng4: {e}", file=stderr)
         return None
 
 
@@ -239,7 +255,8 @@ def gini(x):
 
 def createmaindataset():
     loadetlds()
-    ng = loadngram("ml-data/tranco")
+    ng = loadngram(NGRAM)
+    requirebrown()
     LP = LegalitySyllableTokenizer(brown.words())
 
     # Open noDGA domains
@@ -349,11 +366,12 @@ def createmaindataset():
 
 def createtestdataset():
     loadetlds()
-    ng = loadngram("ml-data/tranco")
+    ng = loadngram(NGRAM)
+    requirebrown()
     LP = LegalitySyllableTokenizer(brown.words())
 
     # Open noDGA domains
-    with open("ml-data/tranco-test2.dom") as f:
+    with open(TRANCO_TEST2) as f:
         lines = f.readlines()
 
     domains = []
@@ -407,6 +425,7 @@ def createtestdataset():
             print("=", end="")
 
         line = line.strip()
+        # Status lines starting with "*": lookdga.py -C mixed them with the CSV before C13 (2021 mydgas.dom)
         if '*' in line or not line:
             continue
         items = line.split(',')
@@ -459,7 +478,8 @@ def createtestdataset():
 
 def createalexadataset():
     loadetlds()
-    ng = loadngram("ml-data/tranco")
+    ng = loadngram(NGRAM)
+    requirebrown()
     LP = LegalitySyllableTokenizer(brown.words())
 
     # Open noDGA domains
@@ -639,83 +659,115 @@ def testsecdata(dataset="full", alexa=False):
     print(f"Accuracy Score: {accuracy_score(y, y_pred)}")
 
 
+def domainfeatures(domain, sld, tld, ng, LP):
+    '''
+    Calculate the 24 features of a domain, in the order the full model was trained with
+    :param domain: full domain (the n-grams are taken from its first label)
+    :param sld: SLD returned by sldtld()
+    :param tld: TLD returned by sldtld()
+    :param ng: ngram object
+    :param LP: syllable tokenizer
+    :return: list with the 24 features
+    '''
+    # CRC32 TLD
+    crctld = crc32(tld.encode('UTF-8'))
+
+    # N-Grams
+    mean1, median1, stddev1 = ng.getall(domain, 1)
+    mean2, median2, stddev2 = ng.getall(domain, 2)
+    mean3, median3, stddev3 = ng.getall(domain, 3)
+    mean4, median4, stddev4 = ng.getall(domain, 4)
+
+    # Vowels, Consonants and numbers
+    v, c, n = vcn(sld)
+
+    # Syllables
+    syln, sylmin, sylmax = syllables(sld, LP)
+
+    # Entropy
+    data = [ord(letter) for letter in sld]
+    value, counts = np.unique(data, return_counts=True)
+    norm_counts = counts / counts.sum()
+    entropy = -(norm_counts * np.log(norm_counts)/np.log(np.e)).sum()
+
+    # Gini coeficient
+    gc = gini(np.array(data))
+
+    return [len(sld)/63, crctld,
+            v, c, n, double(sld), repeated(sld), syln, sylmin, sylmax,
+            mean1, median1, stddev1, mean2, median2, stddev2,
+            mean3, median3, stddev3, mean4, median4, stddev4,
+            entropy, gc]
+
+
+def classify(domlist, model, sc, ng, LP):
+    '''
+    Classify domains with a model, keeping every verdict with its own domain
+    :param domlist: list of domains (they are lowercased before evaluating them)
+    :param model: trained model with a predict() method
+    :param sc: scaler with a transform() method
+    :param ng: ngram object
+    :param LP: syllable tokenizer
+    :return: list of (domain, verdict, reason) in the input order; verdict is None and reason says why
+             when the domain could not be evaluated
+    '''
+    domains = [domain.lower() for domain in domlist]
+    features = []
+    reasons = []
+    for domain in domains:
+        sld, tld, reason = sldtldreason(domain)
+        reasons.append(reason)
+        if sld:
+            features.append(domainfeatures(domain, sld, tld, ng, LP))
+
+    verdicts = []
+    if features:
+        df = pd.DataFrame(features, columns=['len', 'crctld',
+                                             'vowels', 'consonants', 'numbers', 'doubled',
+                                             'repeated', 'sylnumber', 'sylmin', 'sylmax',
+                                             'mean1', 'median1', 'stddev1', 'mean2', 'median2', 'stddev2',
+                                             'mean3', 'median3', 'stddev3', 'mean4', 'median4', 'stddev4',
+                                             'entropy', 'gini'])
+        verdicts = list(model.predict(sc.transform(df.iloc[:, :].values)))
+
+    results = []
+    for domain, reason in zip(domains, reasons):
+        if reason:
+            results.append((domain, None, reason))
+        else:
+            results.append((domain, verdicts.pop(0), None))
+    return results
+
+
 def testdomains(domlist, brute=False):
     loadetlds()
-    ng = loadngram("ml-data/tranco")
+    ng = loadngram(NGRAM)
+    requirebrown()
     LP = LegalitySyllableTokenizer(brown.words())
 
-    domains = []
-    for domain in domlist:
-        # Create data from domains
-        sld, tld = sldtld(domain)
-        if sld:
-            # CRC32 TLD
-            crctld = crc32(tld.encode('UTF-8'))
-
-            # N-Grams
-            mean1, median1, stddev1 = ng.getall(domain, 1)
-            mean2, median2, stddev2 = ng.getall(domain, 2)
-            mean3, median3, stddev3 = ng.getall(domain, 3)
-            mean4, median4, stddev4 = ng.getall(domain, 4)
-
-            # Vowels, Consonants and numbers
-            v, c, n = vcn(sld)
-
-            # Syllables
-            syln, sylmin, sylmax = syllables(sld, LP)
-
-            # Entropy
-            data = [ord(letter) for letter in sld]
-            value, counts = np.unique(data, return_counts=True)
-            norm_counts = counts / counts.sum()
-            entropy = -(norm_counts * np.log(norm_counts)/np.log(np.e)).sum()
-
-            # Gini coeficient
-            gc = gini(np.array(data))
-
-            domains.append([len(sld)/63, crctld,
-                            v, c, n, double(sld), repeated(sld), syln, sylmin, sylmax,
-                            mean1, median1, stddev1, mean2, median2, stddev2,
-                            mean3, median3, stddev3, mean4, median4, stddev4,
-                            entropy, gc])
-
-    print("\nTotal domains: ", len(domains))
-
-    df = pd.DataFrame(domains, columns=['len', 'crctld',
-                                        'vowels', 'consonants', 'numbers', 'doubled',
-                                        'repeated', 'sylnumber', 'sylmin', 'sylmax',
-                                        'mean1', 'median1', 'stddev1', 'mean2', 'median2', 'stddev2',
-                                        'mean3', 'median3', 'stddev3', 'mean4', 'median4', 'stddev4',
-                                        'entropy', 'gini'])
-
-    # Split data
-    X = df.iloc[:, :].values
-
-    # Load scaler
+    # Load scaler and model
     sc = pickle.load(open('ml-data/full-scaler.pkl', 'rb'))
-
-    # Scale data
-    X_test = sc.transform(X)
-
-    # Load model
     model = pickle.load(open('ml-data/full.pkl', 'rb'))
 
-    # Predict
-    y_pred = model.predict(X_test)
+    results = classify(domlist, model, sc, ng, LP)
+    evaluated = [(domain, verdict) for domain, verdict, reason in results if not reason]
+    discarded = [(domain, reason) for domain, verdict, reason in results if reason]
+
+    print("\nTotal domains: ", len(evaluated))
 
     # Show results
 
     print(f"Predictions:")
-    for c, item in enumerate(y_pred):
-        print(dga.Col.HEADER + f"{domlist[c]}:" + dga.Col.END)
+    for domain, item in evaluated:
+        print(dga.Col.HEADER + f"{domain}:" + dga.Col.END)
         if item:
             print(dga.Col.WARNING + "  |__ DGA generated" + dga.Col.END)
-            families = dga.detect(dga.listall(), [domlist[c]])
+            families = dga.detect(dga.listall(), [domain])
             if families:
                 print(dga.Col.WARNING + f"  |__ Possible: {', '.join(families)}" + dga.Col.END)
                 if brute:
                     print(dga.Col.WARNING + f"  |__ BRUTEFORCING..." + dga.Col.END, end="\r")
-                    res = dga.bruteforce(families, [domlist[c]], None, None, 10)
+                    res = dga.bruteforce(families, [domain], None, None, 10)
                     if res:
                         print(dga.Col.ERROR + f"  |__ Detected as {res[0][1]} in {res[0][2]} position for date {res[0][3].year}-{res[0][3].month}-{res[0][3].day}" + dga.Col.END)
                     else:
@@ -725,13 +777,28 @@ def testdomains(domlist, brute=False):
             print(dga.Col.OK + "  |__ No DGA domain" + dga.Col.END)
         print()
 
+    if discarded:
+        print(f"Not evaluated:")
+        for domain, reason in discarded:
+            print(dga.Col.WARNING + f"  |__ {domain}: {reason}" + dga.Col.END)
+
+
+def missingngram():
+    '''
+    List the files of the standard n-gram dictionary that don't exist
+    :return: list of missing files, empty if the dictionary is complete
+    '''
+    return [f"{NGRAM}.ng{n}" for n in range(1, 5) if not isfile(f"{NGRAM}.ng{n}")]
+
 
 def checktranco():
-    if isfile('ml-data/tranco.ng1') and isfile('ml-data/tranco.ng1') and \
-            isfile('ml-data/tranco.ng1') and isfile('ml-data/tranco.ng1'):
-        return True
-    else:
-        return False
+    return not missingngram()
+
+
+def tranconotfound():
+    print(f"Tranco dictionary not found at ml-data (missing {', '.join(missingngram())}). "
+          f"Try to create it with --ngram option.")
+    exit(1)
 
 
 def main():
@@ -768,16 +835,16 @@ def main():
             else:
                 print("Files ml-data/tranco-main.dom and/or ml-data/dga.dom not found")
         else:
-            print("Tranco dictionary not found at ml-data. Try to create it with --ngram option.")
+            tranconotfound()
     elif args.secondary:
         # Create the secondary test dataset
         if checktranco():
-            if isfile("ml-data/tranco-secondary.dom") and isfile("ml-data/mydgas.dom"):
+            if isfile(TRANCO_TEST2) and isfile("ml-data/mydgas.dom"):
                 createtestdataset()
             else:
-                print("Files ml-data/tranco-secondary.dom and/or ml-data/mydgas.dom not found")
+                print(f"Files {TRANCO_TEST2} and/or ml-data/mydgas.dom not found")
         else:
-            print("Tranco dictionary not found at ml-data. Try to create it with --ngram option.")
+            tranconotfound()
     elif args.alexa:
         # Create the Alexa test dataset
         if checktranco():
@@ -786,7 +853,7 @@ def main():
             else:
                 print("File ml-data/alexa.dom not found")
         else:
-            print("Tranco dictionary not found at ml-data. Try to create it with --ngram option.")
+            tranconotfound()
     elif args.ngram:
         # Create the standard Tranco ngram dictionary
         if isfile("ml-data/tranco-ngram.dom"):

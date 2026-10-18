@@ -44,8 +44,15 @@ Just clone the repository and install the dependencies with pip. It is preferabl
 > `lookdga.py` only uses the standard library and needs none of these packages. See [`docs/MVP.md`](docs/MVP.md) §0.
 
 Run every command **from the repository root**: all paths (`ml-data/…`, `DGAs/wordlist/…`) are relative.
-The first run of `detectdga.py` or `statsdga.py` downloads the NLTK `brown` corpus. To work offline, download
-it beforehand and set `NLTK_DATA`.
+`detectdga.py` and `statsdga.py` need the NLTK `brown` corpus (to count syllables). They never download it
+themselves; install it once after the dependencies:
+
+```
+$ python -m nltk.downloader -d ~/nltk_data brown
+```
+
+To keep it somewhere else, use that directory instead and set `NLTK_DATA` to it. If the corpus is missing,
+the scripts stop and print this command.
 
 ## lookdga.py
 This tool can calculate the domains of various malware that use DGA. It can also detect by domain possible DGA using regular expressions, and finally, it can bruteforce it in order to detect the day and order of generation.
@@ -128,11 +135,8 @@ Now, we can create the main dataset:
 
 To create the secondary dataset or the alexa dataset use --secondary or --alexa options.
 
-> **Known issues (2026):**
-> - `--secondary` always fails with "Files ml-data/tranco-secondary.dom and/or ml-data/mydgas.dom not found":
->   it checks for `tranco-secondary.dom` but reads `tranco-test2.dom` (`detectdga.py:775` vs `:356`).
-> - 62% of `ml-data/alexa.dom` (310,412 of 500,000 domains) is also in the training set, so `--test_alexa`
->   overstates accuracy.
+> **Known issue (2026):** 62% of `ml-data/alexa.dom` (310,412 of 500,000 domains) is also in the training set, so
+> `--test_alexa` overstates accuracy.
 >
 > These commands overwrite files in `ml-data/` and are slow (not measured, probably hours). Back up
 > `ml-data/` first.
@@ -153,16 +157,26 @@ Finally, to test a domains with the full model: (-b option to try bruteforce, re
 > - With `-b`, only `nvfowikhevmy.net` is attributed today (Tinba, position 10). The other two DGA domains
 >   are "Not found by bruteforce": `-b` searches 10 positions and 366 days back from today, and these domains
 >   are probably older than that.
-> - Domains that are skipped without notice: SLD of 3 characters or fewer, `www.` prefix, subdomains,
->   uppercase TLD, unknown suffix. When one is skipped, **the verdicts after it are printed next to the wrong
->   domain**, and when all are skipped the command crashes. Pass lowercase registrable domains only.
+> - Only registrable domains are evaluated: domains with an SLD of 3 characters or fewer, a `www.` prefix,
+>   a subdomain or an unknown suffix are listed under "Not evaluated" with the reason. Input is lowercased.
 >
 > Details in [`docs/MVP.md`](docs/MVP.md) §8-9.
 
 ## Tests
 
-There are no automated tests yet. Each feature has a manual acceptance check (command + expected output) in
-[`docs/MVP.md`](docs/MVP.md). Automated tests are planned in [`docs/FUTURE.md`](docs/FUTURE.md) §1.1.11.
+Tests use `pytest` and run from the repository root, in the 2021 environment described above:
+
+```
+$ pip install -r requirements-dev.txt
+$ NLTK_DATA=~/nltk_data pytest            # default run, without the slow tests
+$ NLTK_DATA=~/nltk_data pytest -m slow    # slow tests (more than 30 s each)
+```
+
+Tests that need the NLTK corpus are skipped when it is not available. `tests/test_lookdga.py`,
+`test_generators.py` (a snapshot of the 50 generators and domains confirmed by the 360 Netlab feed),
+`test_check.py` and `test_statsdga.py` pin the behaviour verified in [`docs/MVP.md`](docs/MVP.md); the rest
+cover the fixes of [`docs/CORRECCIONES.md`](docs/CORRECCIONES.md). Tests always run in UTC, because some
+generators depend on the local time zone.
 
 ## Documentation
 

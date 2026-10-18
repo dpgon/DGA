@@ -166,11 +166,11 @@ Objetivo: que el detector y el corpus den resultados fiables antes de usarlos pa
 (C12, C13, C6, C9, C11).
 
 ### 2.1 `--check` empareja veredictos y dominios (C12)
-- [ ] Extraer de `testdomains()` (`detectdga.py:642-726`) una función de clasificación que reciba la lista de
+- [x] Extraer de `testdomains()` (`detectdga.py:642-726`) una función de clasificación que reciba la lista de
       dominios, el modelo, el escalador, el diccionario de n-gramas y el silabeador. Debe devolver, por cada
       dominio de entrada, el dominio, el veredicto (o ninguno) y el motivo del descarte. `testdomains()` solo
       imprime.
-- [ ] Escribir antes en `tests/test_check.py` las pruebas con un modelo falso (un objeto con `predict` que
+- [x] Escribir antes en `tests/test_check.py` las pruebas con un modelo falso (un objeto con `predict` que
       devuelve un veredicto distinto por posición) y un escalador identidad. Deben fallar con el código
       actual:
   - `[bbc.com, google.com, X]`: cada veredicto va con su dominio y `bbc.com` sale como descartado («SLD of 3
@@ -178,62 +178,62 @@ Objetivo: que el detector y el corpus den resultados fiables antes de usarlos pa
   - `[bbc.com]`: termina sin excepción, informa del descarte y no llama a `predict`;
   - `[GOOGLE.COM]`: se evalúa como `google.com`;
   - un dominio con sufijo desconocido: sale como descartado («unknown suffix»).
-- [ ] Implementar el emparejamiento: los veredictos se asocian por dominio y no por índice (`:709-710`, `:713`,
+- [x] Implementar el emparejamiento: los veredictos se asocian por dominio y no por índice (`:709-710`, `:713`,
       `:718`).
-- [ ] Implementar la lista de descartados con su motivo, impresa después de los veredictos.
-- [ ] Si no queda ningún dominio, no llamar a `sc.transform` (`:698`).
-- [ ] Pasar la entrada a minúsculas antes de `sldtld()`. El tratamiento de `www.` y de los subdominios **no
+- [x] Implementar la lista de descartados con su motivo, impresa después de los veredictos.
+- [x] Si no queda ningún dominio, no llamar a `sc.transform` (`:698`).
+- [x] Pasar la entrada a minúsculas antes de `sldtld()`. El tratamiento de `www.` y de los subdominios **no
       cambia**.
-- [ ] **Verificar regresiones:** la prueba de caracterización 1.4 (los cinco dominios del README) sigue
+- [x] **Verificar regresiones:** la prueba de caracterización 1.4 (los cinco dominios del README) sigue
       pasando con los mismos veredictos.
 
 ### 2.2 `-C` deja la salida estándar limpia (C13)
-- [ ] Escribir antes en `tests/test_lookdga.py`: `lookdga.py -m banjori -n 2 -C` → todas las líneas de la
+- [x] Escribir antes en `tests/test_lookdga.py`: `lookdga.py -m banjori -n 2 -C` → todas las líneas de la
       salida estándar cumplen `^[^,]+,[^,]+,[^,]*,\d{4}-\d{2}-\d{2}$`, y las líneas de estado aparecen en la
       salida de error. Debe fallar.
-- [ ] En `dga.create()` (`dga.py:238`, `:283`), imprimir las dos líneas de estado en `sys.stderr`.
-- [ ] Mantener el filtro de `*` de `createtestdataset()` (`detectdga.py:410`) para seguir leyendo los
+- [x] En `dga.create()` (`dga.py:238`, `:283`), imprimir las dos líneas de estado en `sys.stderr`.
+- [x] Mantener el filtro de `*` de `createtestdataset()` (`detectdga.py:410`) para seguir leyendo los
       `mydgas.dom` antiguos. Añadir un comentario que lo explique.
-- [ ] Actualizar la prueba 1.2 de `-C`: ya no hace falta descartar las líneas con `*`.
-- [ ] **Verificar regresiones:** las pruebas de `-G`, `-I`, `-F` y `-L` siguen pasando sin cambios, y
+- [x] Actualizar la prueba 1.2 de `-C`: ya no hace falta descartar las líneas con `*`.
+- [x] **Verificar regresiones:** las pruebas de `-G`, `-I`, `-F` y `-L` siguen pasando sin cambios, y
       `statsdga.py`, que usa `dga.create()` con `main=False`, también.
 
 ### 2.3 `--secondary` usa el fichero que existe (C6)
-- [ ] Añadir a `tests/conftest.py` un *fixture* `repo_tmp`: un directorio temporal con un enlace a `DGAs/` y
+- [x] Añadir a `tests/conftest.py` un *fixture* `repo_tmp`: un directorio temporal con un enlace a `DGAs/` y
       un `ml-data/` con ficheros mínimos (`tranco.ng1-4` reales, `tranco-test2.dom` de 20 líneas,
       `mydgas.dom` de 20 líneas).
-- [ ] Escribir antes en `tests/test_cli.py`: `detectdga.py --secondary` en `repo_tmp` crea
+- [x] Escribir antes en `tests/test_cli.py`: `detectdga.py --secondary` en `repo_tmp` crea
       `ml-data/secondary.pkl` y no imprime `not found`. Debe fallar.
-- [ ] Definir en `detectdga.py` una sola constante con la ruta `ml-data/tranco-test2.dom` y usarla en
+- [x] Definir en `detectdga.py` una sola constante con la ruta `ml-data/tranco-test2.dom` y usarla en
       `createtestdataset()` (`:356`) y en `main()` (`:775-778`).
 
 ### 2.4 Comprobación completa del diccionario (C9)
-- [ ] Escribir antes en `tests/test_cli.py`: en `repo_tmp`, al quitar `tranco.ng2`, `ng3` o `ng4` por turno,
+- [x] Escribir antes en `tests/test_cli.py`: en `repo_tmp`, al quitar `tranco.ng2`, `ng3` o `ng4` por turno,
       `--main` termina con un mensaje que nombra el fichero que falta y con un código de salida distinto
       de 0. Debe fallar.
-- [ ] Corregir `checktranco()` (`detectdga.py:729-734`) para comprobar los cuatro ficheros.
-- [ ] Corregir `loadngram()` (`:203-214`): en lugar de devolver `None` en silencio, informar de qué fichero
+- [x] Corregir `checktranco()` (`detectdga.py:729-734`) para comprobar los cuatro ficheros.
+- [x] Corregir `loadngram()` (`:203-214`): en lugar de devolver `None` en silencio, informar de qué fichero
       falló y por qué.
 
 ### 2.5 Nada de red al importar (C11)
-- [ ] Crear el módulo `nlpdata.py` con una función que compruebe el corpus `brown` (`nltk.data.find`) y, si
+- [x] Crear el módulo `nlpdata.py` con una función que compruebe el corpus `brown` (`nltk.data.find`) y, si
       falta, termine con un mensaje que indique el comando de instalación
       (`python -m nltk.downloader -d <dir> brown`, más `NLTK_DATA`).
-- [ ] Escribir antes `tests/test_offline.py`. Las dos pruebas deben fallar:
+- [x] Escribir antes `tests/test_offline.py`. Las dos pruebas deben fallar:
   - con `nltk.download` sustituido por una función que falla, importar `detectdga` no la llama;
   - `statsdga.py` ejecutado con un `NLTK_DATA` vacío y la opción 8 no intenta descargar y muestra el mensaje.
-- [ ] Quitar la descarga a nivel de módulo de `detectdga.py:20-23` y `statsdga.py:10-13`.
-- [ ] Llamar a la comprobación justo antes de cada `LegalitySyllableTokenizer(brown.words())`: en
+- [x] Quitar la descarga a nivel de módulo de `detectdga.py:20-23` y `statsdga.py:10-13`.
+- [x] Llamar a la comprobación justo antes de cada `LegalitySyllableTokenizer(brown.words())`: en
       `detectdga.py`, `createmaindataset`, `createtestdataset`, `createalexadataset` y `testdomains`; en
       `statsdga.py`, `syll`.
-- [ ] Actualizar la sección «Install» de `README.md` (inglés, en la voz del autor): el corpus se descarga con
+- [x] Actualizar la sección «Install» de `README.md` (inglés, en la voz del autor): el corpus se descarga con
       el comando anterior y la primera ejecución ya no lo hace sola.
 
 ### 2.6 Verificación de la fase
-- [ ] Ejecutar `pytest` y `pytest -m slow` en el entorno 2021: todo en verde.
-- [ ] A mano: ejecutar los ejemplos de `README.md` de `lookdga.py` y `detectdga.py --check` y comparar con
+- [x] Ejecutar `pytest` y `pytest -m slow` en el entorno 2021: todo en verde.
+- [x] A mano: ejecutar los ejemplos de `README.md` de `lookdga.py` y `detectdga.py --check` y comparar con
       `docs/MVP.md`.
-- [ ] Quitar de `README.md` las notas «Known issue (2026)» que resuelve esta fase (desalineación y lista vacía
+- [x] Quitar de `README.md` las notas «Known issue (2026)» que resuelve esta fase (desalineación y lista vacía
       de `--check`, `--secondary`). Conservar el texto original del autor.
 
 **Aceptación de la fase 2:**

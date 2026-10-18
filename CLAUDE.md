@@ -58,8 +58,9 @@ docs/           documentación de la puesta a punto (en español)
   - `python lookdga.py -B nvfowikhevmy.net`
   - `python detectdga.py --check google.com nvfowikhevmy.net`
   - `python statsdga.py`
-- **Sin red:** si el corpus `brown` de NLTK ya está descargado, exporta `NLTK_DATA=<ruta>` y no se intentará
-  descargar.
+- **Sin red:** los scripts nunca descargan nada. El corpus `brown` de NLTK se instala una vez con
+  `python -m nltk.downloader -d <dir> brown` (y `NLTK_DATA=<dir>` si no es `~/nltk_data`). Si falta,
+  `nlpdata.requirebrown()` detiene el script con ese comando. No vuelvas a poner descargas al importar.
 - **Compilación:** no hay.
 - **Pruebas** (`tests/`, `pytest`), en el entorno 2021 y desde la raíz del repositorio:
   ```bash

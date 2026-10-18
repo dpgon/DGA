@@ -1,16 +1,11 @@
-import nltk
 import numpy as np
 import dga
 from datetime import datetime, timedelta
 from nltk.tokenize import LegalitySyllableTokenizer
 from nltk.corpus import brown
 from ngram import ngrams
+from nlpdata import requirebrown
 
-
-try:
-    brown.words
-except:
-    nltk.download('brown')
 
 
 def vcrel(domain, percentage=True):
@@ -223,6 +218,7 @@ def syll(malware, date, nr):
     else:
         topdomains = dga.create(malware, date, nr, None, short=True)
 
+    requirebrown()
     LP = LegalitySyllableTokenizer(brown.words())
     averagesize = 0
     maxsize = 0
