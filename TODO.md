@@ -166,11 +166,11 @@ Objetivo: que el detector y el corpus den resultados fiables antes de usarlos pa
 (C12, C13, C6, C9, C11).
 
 ### 2.1 `--check` empareja veredictos y dominios (C12)
-- [ ] Extraer de `testdomains()` (`detectdga.py:642-726`) una función de clasificación que reciba la lista de
+- [x] Extraer de `testdomains()` (`detectdga.py:642-726`) una función de clasificación que reciba la lista de
       dominios, el modelo, el escalador, el diccionario de n-gramas y el silabeador. Debe devolver, por cada
       dominio de entrada, el dominio, el veredicto (o ninguno) y el motivo del descarte. `testdomains()` solo
       imprime.
-- [ ] Escribir antes en `tests/test_check.py` las pruebas con un modelo falso (un objeto con `predict` que
+- [x] Escribir antes en `tests/test_check.py` las pruebas con un modelo falso (un objeto con `predict` que
       devuelve un veredicto distinto por posición) y un escalador identidad. Deben fallar con el código
       actual:
   - `[bbc.com, google.com, X]`: cada veredicto va con su dominio y `bbc.com` sale como descartado («SLD of 3
@@ -178,13 +178,13 @@ Objetivo: que el detector y el corpus den resultados fiables antes de usarlos pa
   - `[bbc.com]`: termina sin excepción, informa del descarte y no llama a `predict`;
   - `[GOOGLE.COM]`: se evalúa como `google.com`;
   - un dominio con sufijo desconocido: sale como descartado («unknown suffix»).
-- [ ] Implementar el emparejamiento: los veredictos se asocian por dominio y no por índice (`:709-710`, `:713`,
+- [x] Implementar el emparejamiento: los veredictos se asocian por dominio y no por índice (`:709-710`, `:713`,
       `:718`).
-- [ ] Implementar la lista de descartados con su motivo, impresa después de los veredictos.
-- [ ] Si no queda ningún dominio, no llamar a `sc.transform` (`:698`).
-- [ ] Pasar la entrada a minúsculas antes de `sldtld()`. El tratamiento de `www.` y de los subdominios **no
+- [x] Implementar la lista de descartados con su motivo, impresa después de los veredictos.
+- [x] Si no queda ningún dominio, no llamar a `sc.transform` (`:698`).
+- [x] Pasar la entrada a minúsculas antes de `sldtld()`. El tratamiento de `www.` y de los subdominios **no
       cambia**.
-- [ ] **Verificar regresiones:** la prueba de caracterización 1.4 (los cinco dominios del README) sigue
+- [x] **Verificar regresiones:** la prueba de caracterización 1.4 (los cinco dominios del README) sigue
       pasando con los mismos veredictos.
 
 ### 2.2 `-C` deja la salida estándar limpia (C13)
