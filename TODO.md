@@ -230,10 +230,10 @@ Objetivo: que el detector y el corpus den resultados fiables antes de usarlos pa
       el comando anterior y la primera ejecución ya no lo hace sola.
 
 ### 2.6 Verificación de la fase
-- [ ] Ejecutar `pytest` y `pytest -m slow` en el entorno 2021: todo en verde.
-- [ ] A mano: ejecutar los ejemplos de `README.md` de `lookdga.py` y `detectdga.py --check` y comparar con
+- [x] Ejecutar `pytest` y `pytest -m slow` en el entorno 2021: todo en verde.
+- [x] A mano: ejecutar los ejemplos de `README.md` de `lookdga.py` y `detectdga.py --check` y comparar con
       `docs/MVP.md`.
-- [ ] Quitar de `README.md` las notas «Known issue (2026)» que resuelve esta fase (desalineación y lista vacía
+- [x] Quitar de `README.md` las notas «Known issue (2026)» que resuelve esta fase (desalineación y lista vacía
       de `--check`, `--secondary`). Conservar el texto original del autor.
 
 **Aceptación de la fase 2:**
