@@ -7,7 +7,6 @@ import json
 from datetime import datetime, timedelta
 from nltk.tokenize import LegalitySyllableTokenizer
 from nltk.corpus import brown
-from dns import resolver
 from ngram import ngrams
 from nlpdata import requirebrown
 from fetchdata import sha256
@@ -116,6 +115,9 @@ def loadetlds(filename=ETLDS):
 
 
 def existdomain(domain, short=True):
+    # Dead code, like checkdomains(): it would query the DNS for the analysed domains (CLAUDE.md, rule 9; pending
+    # decision in docs/FUTURE.md 1.1.10). dnspython is no longer a dependency, so the import is only here
+    from dns import resolver
     # https://gist.github.com/akshaybabloo/2a1df455e7643926739e934e910cbf2e
     checks = ['A', 'NS', 'CNAME', 'SOA', 'MX', 'TXT', 'AAAA', 'ALIAS']
     if not short:

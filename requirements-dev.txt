@@ -1,2 +1,2 @@
-# Test dependencies (on top of requirements.txt)
-pytest==8.3.5
+# Test dependencies (on top of requirements-lock.txt or requirements.txt)
+pytest==9.1.1
