@@ -336,7 +336,7 @@ obtenidos (C8, C7, C3, C4). **El detector sigue funcionando con el modelo de 202
       «360 Netlab, 2021».
 - [x] Descargar el dataset `harpomaxx/dga-detection` de Hugging Face. Comprobar su formato y quedarse solo
       con las filas etiquetadas como DGA.
-      *Revisión `26ab213`, 1.915.335 dominios DGA de 52 etiquetas. **No son datos recientes:** el dataset (2023)
+      *Revisión `26ab213`, 1.915.335 dominios DGA de 51 etiquetas. **No son datos recientes:** el dataset (2023)
       recoge dominios de Andrey Abakumov y John Bambenek con fecha de 2016 (1.212.756), de 1970 como relleno
       (115.688) o sin fecha (586.891). Hay valores que no son dominios (p. ej., IP en `tinba`): se tratan en la
       fase 4.*
@@ -365,7 +365,7 @@ obtenidos (C8, C7, C3, C4). **El detector sigue funcionando con el modelo de 202
 
 ### 3.5 Borrador local de la release de datos 2026
 - [ ] Elegir el nombre definitivo de la release (propuesta: `datos-2026`).
-- [ ] Añadir `release/` a `.gitignore`.
+- [x] Añadir `release/` a `.gitignore`.
 - [ ] Copiar a `release/datos-2026/` los ficheros del juego `2026` que se puedan redistribuir (3.4), junto
       con un `notas.md` con su procedencia, licencias y SHA‑256. **No se publica**: eso se hace en la fase 7.
 - [ ] Rellenar en el manifiesto sus URLs definitivas
