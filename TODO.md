@@ -332,21 +332,34 @@ obtenidos (C8, C7, C3, C4). **El detector sigue funcionando con el modelo de 202
       código muerto, también lo lee: añadir un comentario que lo señale.
 
 ### 3.4 Dominios DGA (C4)
-- [ ] Mantener `ml-data/dga.dom` de 2021 en **los dos** juegos del manifiesto, con el mismo hash y la fuente
+- [x] Mantener `ml-data/dga.dom` de 2021 en **los dos** juegos del manifiesto, con el mismo hash y la fuente
       «360 Netlab, 2021».
-- [ ] Descargar el dataset `harpomaxx/dga-detection` de Hugging Face. Comprobar su formato y quedarse solo
+- [x] Descargar el dataset `harpomaxx/dga-detection` de Hugging Face. Comprobar su formato y quedarse solo
       con las filas etiquetadas como DGA.
-- [ ] Convertirlo a `ml-data/hf-dga.dom` con el formato de `dga.dom` (`familia<TAB>dominio`). Anotar en el
+      *Revisión `26ab213`, 1.915.335 dominios DGA de 52 etiquetas. **No son datos recientes:** el dataset (2023)
+      recoge dominios de Andrey Abakumov y John Bambenek con fecha de 2016 (1.212.756), de 1970 como relleno
+      (115.688) o sin fecha (586.891). Hay valores que no son dominios (p. ej., IP en `tinba`): se tratan en la
+      fase 4.*
+- [x] Convertirlo a `ml-data/hf-dga.dom` con el formato de `dga.dom` (`familia<TAB>dominio`). Anotar en el
       manifiesto la revisión del dataset, el SHA‑256 y la licencia CC BY 2.0.
-- [ ] Regenerar el corpus propio, ya limpio gracias a 2.2: `python lookdga.py -d 2026-10-18 -n 3000 -C >
+- [x] Regenerar el corpus propio, ya limpio gracias a 2.2: `python lookdga.py -d 2026-10-18 -n 3000 -C >
       ml-data/mydgas.dom`. Anotar la fecha usada en el manifiesto (juego `2026`).
-- [ ] **Licencias:** comprobar y anotar en la columna `licencia` si se pueden redistribuir:
+      *Va en `ml-data/2026/mydgas.dom` (3.3) y se generó con `TZ=UTC`. **Hallazgo:** tiene 150.000 filas
+      (3.000 por familia), y el `mydgas.dom` de 2021, 504.000 (3.000 por cada una de las 168 configuraciones).
+      El código publicado, en `v2021` y hoy, genera 150.000 con ese comando, y su modo «por configuración»
+      (`dga.create(..., configs=1)`) falla con `UnboundLocalError` (`first` sin definir). El corpus de 2021
+      salió, pues, de un código que no está en el repositorio. Tenerlo en cuenta al comparar en la fase 4.*
+- [x] **Licencias:** comprobar y anotar en la columna `licencia` si se pueden redistribuir:
   - la lista Tranco;
   - los términos de Cisco Umbrella;
   - la CC BY 2.0 de Hugging Face (exige atribución);
   - el feed de 360 Netlab.
   Si alguna no permite redistribuir, ese fichero **no se sube** como asset. El manifiesto lleva entonces la
   URL original y `fetchdata.py` lo descarga de su fuente.
+      *Revisado el 2026-10-19, resultado en la columna `license`: Hugging Face CC BY 2.0 y PSL MPL‑2.0 permiten
+      redistribuir. Tranco no declara licencia y mezcla fuentes con términos distintos (Cloudflare Radar es
+      CC BY‑NC 4.0). Umbrella solo dice «free of charge». Netlab no publica términos. **Qué se sube en
+      `datos-2026` lo decide el autor** (3.5).*
 - [ ] **Fuera del código:** enviar a Fraunhofer FKIE la solicitud de acceso a DGArchive. Anotar la fecha y la
       respuesta en `docs/FUTURE.md` §1.2.1.
 
