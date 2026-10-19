@@ -1,7 +1,7 @@
 '''
-Tests of the SLD/TLD split of detectdga.py with each public suffix list (C7): the 2021 one, which the bundled
-model was trained with, and the new one of the 2026 data set (ml-data/public_suffix_list.dat, fetchdata.py --set
-2026). The new list is only prepared here; detectdga.py keeps using the 2021 one until the model is retrained.
+Tests of the SLD/TLD split of detectdga.py with each public suffix list (C7): the 2026 one, the default since the
+model was retrained (DGAs/wordlist/effective_tld_names.dat), and the one the 2021 model was trained with
+(ml-data/effective_tld_names-2021.dat, python fetchdata.py --set 2021).
 '''
 import os
 
@@ -10,8 +10,8 @@ import pytest
 from conftest import ROOT
 
 LISTS = {
-    "2021": "DGAs/wordlist/effective_tld_names.dat",
-    "2026": "ml-data/public_suffix_list.dat",
+    "2021": "ml-data/effective_tld_names-2021.dat",
+    "2026": "DGAs/wordlist/effective_tld_names.dat",
 }
 
 
@@ -19,7 +19,7 @@ LISTS = {
 def suffixes(request):
     path = os.path.join(ROOT, LISTS[request.param])
     if not os.path.isfile(path):
-        pytest.skip(f"missing {LISTS[request.param]}: run python fetchdata.py --set 2026")
+        pytest.skip(f"missing {LISTS[request.param]}: run python fetchdata.py --set {request.param}")
     import detectdga
     detectdga.loadetlds(path)
     yield detectdga
@@ -39,20 +39,20 @@ def test_short_sld_is_discarded(suffixes):
     assert suffixes.sldtldreason("bbc.com") == (None, None, "SLD of 3 characters or fewer")
 
 
-def test_default_is_the_2021_list():
+def test_default_is_the_2026_list():
     import detectdga
     detectdga.loadetlds()
-    assert detectdga.etldsfile == LISTS["2021"]
+    assert detectdga.etldsfile == LISTS["2026"]
 
 
 def test_suffix_only_in_the_new_list():
     # a2hosted.com was added to the private section of the list after 2021
-    new = os.path.join(ROOT, LISTS["2026"])
-    if not os.path.isfile(new):
-        pytest.skip(f"missing {LISTS['2026']}: run python fetchdata.py --set 2026")
+    old = os.path.join(ROOT, LISTS["2021"])
+    if not os.path.isfile(old):
+        pytest.skip(f"missing {LISTS['2021']}: run python fetchdata.py --set 2021")
     import detectdga
-    detectdga.loadetlds(new)
+    detectdga.loadetlds(os.path.join(ROOT, LISTS["2026"]))
     assert detectdga.sldtld("example.a2hosted.com") == ("example", "a2hosted.com")
-    detectdga.loadetlds(os.path.join(ROOT, LISTS["2021"]))
+    detectdga.loadetlds(old)
     assert detectdga.sldtld("example.a2hosted.com") == (None, None)
     detectdga.loadetlds()

@@ -18,7 +18,8 @@ class DGA:
 
     def __init__(self, date=None, seed=None):
         self.date = date
-        self.date -= datetime.utcfromtimestamp(0)
+        # Milliseconds since the Unix epoch, taking the naive date as UTC (utcfromtimestamp(0) is deprecated)
+        self.date -= datetime(1970, 1, 1)
         self.date = int(self.date.total_seconds() * 1000)
         self.wordlist = ['above', 'action', 'advance', 'afraid', 'against', 'airplane', 'almost', 'alone', 'already',
                     'although', 'always', 'amount', 'anger', 'angry', 'animal', 'another', 'answer', 'appear',

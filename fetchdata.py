@@ -186,8 +186,9 @@ def installbrown():
 
 def main():
     parser = argparse.ArgumentParser(description="Download and verify the data files listed in ml-data/MANIFEST")
-    parser.add_argument("--set", default="2021",
-                        help="data set to install (default 2021, the one the bundled model was trained with)")
+    parser.add_argument("--set", default="2026",
+                        help="data set to install: 2026 (default, the one the model is trained with) or 2021 (the "
+                             "master's project, whose model only loads in the 2021 environment)")
     parser.add_argument("--from", dest="local", metavar="DIRECTORY",
                         help="copy the files from a local directory instead of downloading them "
                              "(files that are not there are still obtained from their URL)")

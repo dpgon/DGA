@@ -136,3 +136,6 @@ DGAs/wordlist/top-1m.csv
 
 # Local drafts of the data releases, published in TODO.md phase 7
 release/
+
+# NLTK corpus of the CI workflow (NLTK_DATA), also written here by act --bind
+.nltk_data/

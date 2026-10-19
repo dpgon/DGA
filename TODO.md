@@ -463,43 +463,47 @@ hasta que el modelo nuevo funcione: en medio, el modelo de 2021 no carga.
 Depende de: el anexo del sondeo (1.6), las fases 2–4 y los datos del juego `2026`.
 
 ### 5.1 Requisitos y entorno (C1)
-- [ ] Reescribir `requirements.txt` con dependencias **directas** y cotas inferiores validadas en el sondeo:
+- [x] Reescribir `requirements.txt` con dependencias **directas** y cotas inferiores validadas en el sondeo:
   - scikit-learn, pandas, numpy, nltk y skops;
   - quitar `dnspython`;
   - quitar las transitivas.
-- [ ] Hacer perezoso el import de `dns.resolver` (`detectdga.py:10`): moverlo dentro de `existdomain()`
+- [x] Hacer perezoso el import de `dns.resolver` (`detectdga.py:10`): moverlo dentro de `existdomain()`
       (código muerto) para que importar `detectdga` no exija `dnspython`. Añadir un comentario que remita a
       `docs/FUTURE.md` §1.1.10.
-- [ ] Generar `requirements-lock.txt` con `uv pip compile requirements.txt --universal --python-version 3.12
+- [x] Generar `requirements-lock.txt` con `uv pip compile requirements.txt --universal --python-version 3.12
       -o requirements-lock.txt`.
-- [ ] Actualizar `requirements-dev.txt` a un `pytest` actual.
-- [ ] Corregir las roturas y avisos del anexo del sondeo (`docs/CORRECCIONES.md`). No se encontró ninguna
+- [x] Actualizar `requirements-dev.txt` a un `pytest` actual.
+- [x] Corregir las roturas y avisos del anexo del sondeo (`docs/CORRECCIONES.md`). No se encontró ninguna
       rotura de API de pandas 3.0, numpy 2 ni scikit-learn 1.9; los `df.drop(..., inplace=True)` funcionan. La
       rotura n.º 1 (`dnspython`) es la casilla anterior; la n.º 3 (`ResourceWarning`) se resuelve en 5.2. Queda:
-  - [ ] `DGAs/pizd.py:21`: sustituir `datetime.utcfromtimestamp(0)` (obsoleto) por un equivalente con zona
+  - [x] `DGAs/pizd.py:21`: sustituir `datetime.utcfromtimestamp(0)` (obsoleto) por un equivalente con zona
         horaria que dé **el mismo resultado**. Lo comprueban la instantánea (1.3) y la referencia de Netlab de
         pizd.
-- [ ] Si al empezar la fase hay versiones más nuevas que las del sondeo, repetir el sondeo de 1.6 con ellas y
+- [x] Si al empezar la fase hay versiones más nuevas que las del sondeo, repetir el sondeo de 1.6 con ellas y
       añadir aquí una casilla por cada rotura nueva.
-- [ ] **Verificar regresiones:** en el entorno 2026, `pytest -m "not model"` pasa. En particular, la
+  *Hecho (2026-10-19): las versiones actuales son las del sondeo (scikit-learn 1.9.1, pandas 3.0.6, numpy 2.5.4,
+  nltk 3.10.3); no hizo falta repetirlo.*
+- [x] **Verificar regresiones:** en el entorno 2026, `pytest -m "not model"` pasa. En particular, la
       instantánea de generadores (1.3) es **idéntica**: el salto de versiones no debe cambiar ningún dominio
       generado.
 
 ### 5.2 Persistencia segura y metadatos (C2, C10)
-- [ ] `ngram.py`: sustituir `to_pickle`/`read_pickle` (`ngram.py:45-55`) por un formato de texto: un CSV por
+- [x] `ngram.py`: sustituir `to_pickle`/`read_pickle` (`ngram.py:45-55`) por un formato de texto: un CSV por
       orden (`tranco.ng1.csv` … `ng4.csv`, columnas `ngrama,valor`).
-- [ ] Probar en `tests/test_ngram.py`:
+  *Hecho: columnas `ngram,value` (en inglés, como el código). Los valores se escriben con `repr()` para
+  conservarlos exactos; `ngram1`…`ngram4` pasan a ser diccionarios.*
+- [x] Probar en `tests/test_ngram.py`:
   - guardar y cargar conserva todos los valores;
   - `getall()` da los mismos resultados que con el diccionario de 2021 convertido;
   - n-gramas con comillas no rompen nada.
-- [ ] Sustituir el acceso con `eval` de `_checkdom()` (`ngram.py:61-62`) por un acceso directo, dado que se
+- [x] Sustituir el acceso con `eval` de `_checkdom()` (`ngram.py:61-62`) por un acceso directo, dado que se
       cambia el formato. La prueba anterior lo cubre.
-- [ ] `detectdga.py`:
+- [x] `detectdga.py`:
   - guardar modelo y escalador con `skops` en `traindata()` (`:564,571`);
   - cargarlos con `skops` y una lista explícita de tipos de confianza en `testsecdata()` (`:623,629`) y
     `testdomains()` (`:695,701`);
   - nombres `ml-data/{variante}.skops` y `{variante}-scaler.skops`.
-- [ ] Escribir el fichero de metadatos `ml-data/{variante}.json` al entrenar, con:
+- [x] Escribir el fichero de metadatos `ml-data/{variante}.json` al entrenar, con:
   - versiones de Python y de las librerías;
   - fecha;
   - ID Tranco y fuentes DGA con su SHA‑256;
@@ -507,61 +511,80 @@ Depende de: el anexo del sondeo (1.6), las fases 2–4 y los datos del juego `20
   - hiperparámetros;
   - recuentos de exclusión (4.1);
   - métricas.
-- [ ] Al cargar, comprobar los SHA‑256 del diccionario y de la lista de sufijos contra los metadatos. Si no
+  *Hecho: `--main` escribe además `ml-data/main.json` con lo que entró en `main.pkl`, y `--test_secondary` y
+  `--test_umbrella` añaden sus métricas y recuentos a `evaluations` (repetir una evaluación no cambia el
+  fichero). Al cargar también se comprueban los SHA‑256 del modelo y del escalador.*
+- [x] Al cargar, comprobar los SHA‑256 del diccionario y de la lista de sufijos contra los metadatos. Si no
       coinciden, terminar con un mensaje que diga cuál no coincide.
-- [ ] Escribir `tests/test_model.py`:
+- [x] Escribir `tests/test_model.py`:
   - carga sin `pickle`, con un modelo pequeño entrenado en la prueba;
   - un diccionario con el hash alterado se rechaza;
   - un tipo que no está en la lista de confianza se rechaza.
-- [ ] C10: `n_jobs=-1` en `RandomForestClassifier` (`detectdga.py:567`) y fijar `model.n_jobs` al cargar.
+- [x] C10: `n_jobs=-1` en `RandomForestClassifier` (`detectdga.py:567`) y fijar `model.n_jobs` al cargar.
       Probarlo en `tests/test_model.py`.
 
 ### 5.3 Activar la lista de sufijos nueva (C7)
-- [ ] Sustituir `DGAs/wordlist/effective_tld_names.dat` por la lista de 3.2. Anotar su fecha y su SHA‑256 en
+- [x] Sustituir `DGAs/wordlist/effective_tld_names.dat` por la lista de 3.2. Anotar su fecha y su SHA‑256 en
       el manifiesto. La de 2021 sigue en `v2021`.
-- [ ] Añadir sobre los 154 sufijos manuales (`detectdga.py:31-58`) un comentario que diga de dónde salen
+  *Hecho: la de 2021 entra en el manifiesto como `ml-data/effective_tld_names-2021.dat` (juego 2021), descargada
+  de la etiqueta `v2021`. `ml-data/public_suffix_list.dat` sale del manifiesto: es el mismo fichero.*
+- [x] Añadir sobre los 154 sufijos manuales (`detectdga.py:31-58`) un comentario que diga de dónde salen
       («extraídos de Alexa top 1M, 2021»).
-- [ ] Actualizar `tests/test_sldtld.py`: la lista por defecto es la nueva.
+- [x] Actualizar `tests/test_sldtld.py`: la lista por defecto es la nueva.
 
 ### 5.4 Reentrenamiento
-- [ ] Copiar `ml-data/` fuera del repositorio antes de regenerar nada (`CLAUDE.md`, regla 13).
-- [ ] `--ngram` con el `tranco-ngram.dom` de 2026, en el formato nuevo de 5.2.
-- [ ] `--main`, con `tranco-main.dom` de 2026 y `dga.dom` de 2021.
-- [ ] `--secondary` y `--umbrella`, con la exclusión de 4.1.
-- [ ] Escribir la **prueba de paridad de características** en `tests/test_model.py` (`slow`): para 100 filas
+- [x] Copiar `ml-data/` fuera del repositorio antes de regenerar nada (`CLAUDE.md`, regla 13).
+- [x] `--ngram` con el `tranco-ngram.dom` de 2026, en el formato nuevo de 5.2.
+- [x] `--main`, con `tranco-main.dom` de 2026 y `dga.dom` de 2021.
+- [x] `--secondary` y `--umbrella`, con la exclusión de 4.1.
+- [x] Escribir la **prueba de paridad de características** en `tests/test_model.py` (`slow`): para 100 filas
       de `main.pkl`, el vector que calcula la función de clasificación de 2.1 para su dominio es idéntico a la
       fila.
-- [ ] `--train full` y `--train tiny`, con los hiperparámetros de 2021 (`detectdga.py:555,567`). Anotar el
+- [x] `--train full` y `--train tiny`, con los hiperparámetros de 2021 (`detectdga.py:555,567`). Anotar el
       tiempo.
-- [ ] `--test_secondary` y `--test_umbrella` con `full` y `tiny`, desglosados por origen.
-- [ ] Comparar con las métricas de 2021 de la fase 4.
-- [ ] **Verificar a mano**, antes de publicar:
+  *Hecho: `full` 33 s, `tiny` 9 s (Apple Silicon nativo, 12 núcleos). `--ngram` 19 s, `--main` 5 min 40 s,
+  `--secondary` 3 min 54 s, `--umbrella` 23 s. `--ngram`, `--main`, `--secondary` y `--umbrella` aceptan
+  `--set`, por defecto 2026.*
+- [x] `--test_secondary` y `--test_umbrella` con `full` y `tiny`, desglosados por origen.
+- [x] Comparar con las métricas de 2021 de la fase 4.
+  *Hecho (`docs/MVP.md`, «Métricas del modelo de 2026»): secundario `full` 1,2 % de falsos positivos y 79,0 %
+  detectados (2021: 1,9 % y 78,8 %). En Umbrella sube al 36,8 % porque cambia el conjunto, no el modelo: sobre
+  los dominios comunes, 44,2 % frente a 45,1 % del de 2021; 8.857 de los 10.935 falsos positivos son de
+  `cloudfront.net`.*
+- [x] **Verificar a mano**, antes de publicar:
   - el ejemplo `--check` del README con los cinco dominios: anotar los resultados nuevos;
   - `google.com`, `facebook.com` y `wikipedia.org` dan `No DGA domain`;
   - los dominios de `tests/data/referencia_netlab.csv` dan mayoritariamente `DGA generated`;
   - las métricas son razonables frente a las de 2021. Si caen mucho, parar y analizar antes de publicar.
-- [ ] Actualizar la prueba 1.4 con los veredictos esperados del modelo nuevo y añadir el conjunto de
+- [x] Actualizar la prueba 1.4 con los veredictos esperados del modelo nuevo y añadir el conjunto de
       referencia de C2 (umbral de aciertos, no igualdad exacta).
-- [ ] Preparar el borrador local de la release del modelo en `release/modelo-2026/` (nombre definitivo a
+- [x] Preparar el borrador local de la release del modelo en `release/modelo-2026/` (nombre definitivo a
       elegir al implementarlo): `full.skops`, `full-scaler.skops`, `full.json`, el equivalente de `tiny`,
       `tranco.ng*.csv` y un `notas.md` con las métricas y los SHA‑256. **No se publica** hasta la fase 7.
-- [ ] Actualizar el manifiesto con sus URLs definitivas. El juego por defecto pasa a `2026`; `2021` queda como
+  *Hecho: `release/model-2026/`, con `notes.md`.*
+- [x] Actualizar el manifiesto con sus URLs definitivas. El juego por defecto pasa a `2026`; `2021` queda como
       juego histórico.
-- [ ] **Verificar:** en un clon nuevo hecho desde el repositorio local, `fetchdata.py --from
+- [x] **Verificar:** en un clon nuevo hecho desde el repositorio local, `fetchdata.py --from
       <ruta>/release/modelo-2026` y `--from <ruta>/release/data-2026` dejan `--check` funcionando con el
       modelo nuevo.
+  *Hecho (Python 3.12, entorno nuevo con `pip install -r requirements-lock.txt`): con `--from` de los dos
+  borradores, `--check` da los veredictos del README y `pytest -m "slow or not slow"` pasa (324, 22 saltadas
+  por no tener el juego 2021).*
 
 ### 5.5 CI en las versiones nuevas
-- [ ] Sustituir el trabajo de Python 3.9 de `.github/workflows/tests.yml` por una matriz {`ubuntu-latest`,
+- [x] Sustituir el trabajo de Python 3.9 de `.github/workflows/tests.yml` por una matriz {`ubuntu-latest`,
       `macos-14` (arm64), `windows-latest`} × {3.12, 3.13}:
   - `pip install -r requirements-lock.txt -r requirements-dev.txt`;
   - `python fetchdata.py --nltk` con caché;
   - `pytest`.
-- [ ] **Verificar Linux en local:** `act` ejecuta los trabajos de Ubuntu con 3.12 y 3.13 en verde. `act` solo
+- [x] **Verificar Linux en local:** `act` ejecuta los trabajos de Ubuntu con 3.12 y 3.13 en verde. `act` solo
       ejecuta contenedores Linux.
-- [ ] **Verificar macOS arm64 en local:** en la máquina del autor, sin Rosetta, con 3.12 y 3.13:
+  *Hecho: `act` con `--bind` (las releases nuevas aún no están publicadas), 305 pruebas pasan con 3.12.15 y
+  con 3.13.16. El comando está en `CLAUDE.md`.*
+- [x] **Verificar macOS arm64 en local:** en la máquina del autor, sin Rosetta, con 3.12 y 3.13:
       `pip install -r requirements-lock.txt -r requirements-dev.txt`, `fetchdata.py --from …` y `pytest`
       pasan.
+  *Hecho: 3.12 en el clon nuevo (arriba) y 3.13 en el repositorio: 346 pruebas pasan en cada uno.*
 - [ ] **Windows:** no se puede verificar en local. Queda para la fase 7, con estas comprobaciones:
   - las rutas `ml-data/…` y `DGAs/wordlist/…` funcionan;
   - los colores ANSI no rompen las pruebas;
@@ -662,7 +685,8 @@ local. Cada paso requiere el visto bueno del autor en el momento de hacerlo.
 ### 7.2 Releases
 - [ ] Publicar la release de datos (`gh release create data-2026 …`) con los ficheros y las notas de
       `release/data-2026/`.
-- [ ] Publicar la release del modelo (`gh release create modelo-2026 …`) con `release/modelo-2026/`.
+- [ ] Publicar la release del modelo (`gh release create model-2026 …`) con `release/model-2026/` (nombre elegido
+      en 5.4, en inglés como `data-2026`).
 - [ ] **Verificar:** descargar cada asset (`gh release download`) y comparar su SHA‑256 con
       `ml-data/MANIFEST`.
 
