@@ -1,6 +1,7 @@
 '''
-Evaluation data sets of detectdga.py (C5, C3): they never share a domain or an SLD with the data the 2021 model
-was built from (tranco-main.dom, tranco-ngram.dom, dga.dom), and they report how many domains were excluded.
+Evaluation data sets of detectdga.py (C5, C3): they never share a domain or an SLD with the data the model of
+their data set is built from (2026/tranco-main.dom, 2026/tranco-ngram.dom, dga.dom), and they report how many
+domains were excluded.
 They run on a small repository in tmp_path with known overlaps. They need the NLTK brown corpus (NLTK_DATA).
 '''
 import json
@@ -9,7 +10,7 @@ import os
 import pandas as pd
 import pytest
 
-from conftest import ROOT, missingdata, run
+from conftest import NGRAM_FILES, ROOT, missingdata, run
 
 
 def write(path, text):
@@ -23,16 +24,15 @@ def small_repo(tmp_path):
     Training data: google.com, example.org (tranco-main), wikipedia.org (tranco-ngram) and qwertyuiopas.com
     (dga.dom). The evaluation files repeat some of them, with other suffixes or in upper case.
     '''
-    needed = [f"tranco.ng{n}" for n in range(1, 5)]
-    if missingdata(needed):
+    if missingdata(NGRAM_FILES):
         pytest.skip("missing the n-gram dictionary: run python fetchdata.py")
     os.symlink(os.path.join(ROOT, "DGAs"), tmp_path / "DGAs")
     data = tmp_path / "ml-data"
     data.mkdir()
-    for name in needed:
+    for name in NGRAM_FILES:
         os.symlink(os.path.join(ROOT, "ml-data", name), data / name)
-    write(data / "tranco-main.dom", "google.com\nexample.org\n")
-    write(data / "tranco-ngram.dom", "wikipedia.org\n")
+    write(data / "2026" / "tranco-main.dom", "google.com\nexample.org\n")
+    write(data / "2026" / "tranco-ngram.dom", "wikipedia.org\n")
     write(data / "dga.dom", "# header\nbanjori\tqwertyuiopas.com\t2021-08-08 00:00:00\t2021-08-08 23:59:59\n")
     write(data / "2026" / "tranco-test2.dom", "GOOGLE.com\ngoogle.de\nwikipedia.org\nnewsite.net\nfreshdomain.com\n")
     write(data / "2026" / "mydgas.dom", "qwertyuiopas.com,banjori,None,2026-10-18\n"

@@ -6,7 +6,7 @@ import os
 
 import pytest
 
-from conftest import run
+from conftest import NGRAM_FILES, run
 
 
 def test_secondary_uses_tranco_test2(repo_tmp, nltk_data):
@@ -17,7 +17,7 @@ def test_secondary_uses_tranco_test2(repo_tmp, nltk_data):
     assert (repo_tmp / "ml-data" / "secondary.pkl").is_file()
 
 
-@pytest.mark.parametrize("missing", ["tranco.ng1", "tranco.ng2", "tranco.ng3", "tranco.ng4"])
+@pytest.mark.parametrize("missing", NGRAM_FILES)
 def test_main_reports_missing_ngram_file(repo_tmp, nltk_data, missing):
     # C9: checktranco() looked four times at tranco.ng1, so a missing ng2-ng4 failed later without saying why
     os.remove(repo_tmp / "ml-data" / missing)

@@ -50,7 +50,8 @@ def run(script, *args, stdin=None, timeout=900, cwd=ROOT):
     return proc
 
 
-MODEL_FILES = ["full.pkl", "full-scaler.pkl", "tranco.ng1", "tranco.ng2", "tranco.ng3", "tranco.ng4"]
+NGRAM_FILES = [f"tranco.ng{n}.csv" for n in range(1, 5)]
+MODEL_FILES = ["full.skops", "full-scaler.skops", "full.json"] + NGRAM_FILES
 
 
 def missingdata(names):
@@ -92,18 +93,19 @@ def head(src, dst, lines):
 def repo_tmp(tmp_path):
     '''
     Working directory with a link to DGAs/ and a small ml-data/: the real n-gram dictionary and the first lines
-    of the domain lists. Scripts run with run(..., cwd=repo_tmp) write there instead of the real ml-data/.
+    of the domain lists of the 2026 data set. Scripts run with run(..., cwd=repo_tmp) write there instead of the
+    real ml-data/.
     '''
-    needed = [f"tranco.ng{n}" for n in range(1, 5)] + ["tranco-main.dom", "tranco-test2.dom", "tranco-ngram.dom",
-                                                       "mydgas.dom", "dga.dom"]
+    lists = ["2026/tranco-main.dom", "2026/tranco-test2.dom", "2026/tranco-ngram.dom", "2026/mydgas.dom", "hf-dga.dom"]
+    needed = NGRAM_FILES + lists + ["dga.dom"]
     if missingdata(needed):
         pytest.skip(f"missing ml-data/{', ml-data/'.join(missingdata(needed))}: run python fetchdata.py")
     os.symlink(join(ROOT, "DGAs"), tmp_path / "DGAs")
     data = tmp_path / "ml-data"
-    data.mkdir()
-    for n in range(1, 5):
-        os.symlink(join(ROOT, "ml-data", f"tranco.ng{n}"), data / f"tranco.ng{n}")
-    for name in ["tranco-main.dom", "tranco-test2.dom", "tranco-ngram.dom", "mydgas.dom"]:
+    (data / "2026").mkdir(parents=True)
+    for name in NGRAM_FILES:
+        os.symlink(join(ROOT, "ml-data", name), data / name)
+    for name in lists:
         head(join(ROOT, "ml-data", name), data / name, 20)
     # dga.dom starts with a comment header: keep it and 20 data lines
     head(join(ROOT, "ml-data", "dga.dom"), data / "dga.dom", 40)
