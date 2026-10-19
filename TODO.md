@@ -701,12 +701,15 @@ local. Cada paso requiere el visto bueno del autor en el momento de hacerlo.
   *Hecho: ningún objeto nuevo pasa de 5 MB; de `ml-data/` solo está versionado `MANIFEST`, y `release/` nada.*
 
 ### 7.2 Releases
-- [ ] Publicar la release de datos (`gh release create data-2026 …`) con los ficheros y las notas de
+- [x] Publicar la release de datos (`gh release create data-2026 …`) con los ficheros y las notas de
       `release/data-2026/`.
-- [ ] Publicar la release del modelo (`gh release create model-2026 …`) con `release/model-2026/` (nombre elegido
+  *Hecho (2026-10-19): https://github.com/dpgon/DGA/releases/tag/data-2026, con `--latest=false`.*
+- [x] Publicar la release del modelo (`gh release create model-2026 …`) con `release/model-2026/` (nombre elegido
       en 5.4, en inglés como `data-2026`).
-- [ ] **Verificar:** descargar cada asset (`gh release download`) y comparar su SHA‑256 con
+  *Hecho: https://github.com/dpgon/DGA/releases/tag/model-2026. Las etiquetas de las dos apuntan a `61f0bff`.*
+- [x] **Verificar:** descargar cada asset (`gh release download`) y comparar su SHA‑256 con
       `ml-data/MANIFEST`.
+  *Hecho: los 13 assets descargados coinciden en tamaño y SHA‑256 con el manifiesto.*
 
 ### 7.3 Código
 - [ ] `git push origin main`, más la etiqueta de versión de la actualización si el autor decide crearla.
