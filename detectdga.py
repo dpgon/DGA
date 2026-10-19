@@ -19,10 +19,14 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 
 
 etlds = []
+etldsfile = None
 
 # Data files shared by several functions, defined once so the checks and the reads cannot diverge (C6)
 NGRAM = "ml-data/tranco"
 TRANCO_TEST2 = "ml-data/tranco-test2.dom"
+# Public suffix list the bundled model was trained with. The 2026 one (ml-data/public_suffix_list.dat) is only
+# used with a retrained model (C7)
+ETLDS = "DGAs/wordlist/effective_tld_names.dat"
 FETCH = "Download them with: python fetchdata.py"
 
 
@@ -42,8 +46,15 @@ def modelfiles(dataset):
     return [f"ml-data/{dataset}.pkl", f"ml-data/{dataset}-scaler.pkl"]
 
 
-def loadetlds():
-    if not etlds:
+def loadetlds(filename=ETLDS):
+    '''
+    Load the public suffixes, once per list
+    :param filename: public suffix list to use, by default the 2021 one
+    '''
+    global etldsfile
+    if etldsfile != filename:
+        etlds.clear()
+        etldsfile = filename
         # TLDs extracted from Alexa top 1M
         etlds.extend(['wix.com', 'wordpress.com', 'uol.com.br', 'tumblr.com', 'squarespace.com', 'gov.bd',
                       'com.bd', 'ecwid.com', 'sharepoint.com', 'xn--p1ai', 'free.fr', 'jimdo.com', 'com.mm', 
@@ -74,7 +85,7 @@ def loadetlds():
                       'coop.np', 'mil.np', 'info.np', 'cornwall.sch.uk', 'xn--cck2b3b',
                       'xn--bck1b9a5dre4c'])
 
-        with open("DGAs/wordlist/effective_tld_names.dat") as f:
+        with open(filename, encoding="utf-8") as f:
             lines = f.readlines()
         for line in lines:
             line = line.strip()
