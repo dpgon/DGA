@@ -607,30 +607,35 @@ Objetivo: que cada documento diga lo que hay (`docs/CORRECCIONES.md`, «Document
 actualizar»). En la voz y el idioma de cada documento: `README.md` en inglés, el resto en español.
 
 ### 6.1 `README.md`
-- [ ] «Install»: Python 3.12/3.13, `pip install -r requirements-lock.txt` (o `requirements.txt`),
+- [x] «Install»: Python 3.12/3.13, `pip install -r requirements-lock.txt` (o `requirements.txt`),
       `python fetchdata.py --nltk`, ejecutar desde la raíz. Conservar la frase original del autor y ajustar
       su nota «Known issue» para que diga que ya está resuelto, con la versión.
-- [ ] Quitar las notas «Known issue (2026)» resueltas: instalación, Alexa contaminada y CSV de `-C`.
+  *Hecho: se conserva la frase original con `requirements.txt`, que ahora funciona, y una nota explica
+  Python 3.12+ y el lock. Verificado en un clon nuevo con Python 3.13.*
+- [x] Quitar las notas «Known issue (2026)» resueltas: instalación, Alexa contaminada y CSV de `-C`.
       Conservar las no resueltas: patrones laxos, ventana de la fuerza bruta y la opción 9 de `statsdga.py`.
-- [ ] Ajustar la nota de `statsdga.py`: ahora usa Tranco. Conservar la frase original del autor sobre
+- [x] Ajustar la nota de `statsdga.py`: ahora usa Tranco. Conservar la frase original del autor sobre
       Alexa, con la nota al lado.
-- [ ] `detectdga.py`: documentar `--umbrella`/`--test_umbrella` y los alias. Explicar que los datos se
+- [x] `detectdga.py`: documentar `--umbrella`/`--test_umbrella` y los alias. Explicar que los datos se
       descargan con `fetchdata.py`, y que las instrucciones de Tranco y Netlab sirven para reconstruirlos.
-- [ ] Resultados nuevos del ejemplo `--check` (5.4) y una tabla de métricas 2021 frente a 2026.
-- [ ] «Tests»: `pip install -r requirements-dev.txt`, `pytest`, `pytest -m slow`, y qué cubre cada fichero de
+- [x] Resultados nuevos del ejemplo `--check` (5.4) y una tabla de métricas 2021 frente a 2026.
+  *Hecho: sección «Results» con la tabla 2021 → 2026 y la explicación de Umbrella.*
+- [x] «Tests»: `pip install -r requirements-dev.txt`, `pytest`, `pytest -m slow`, y qué cubre cada fichero de
       `tests/`.
-- [ ] «Credits»: Tranco (con el ID de la lista), Cisco Umbrella, Hugging Face `harpomaxx/dga-detection` (CC BY
+- [x] «Credits»: Tranco (con el ID de la lista), Cisco Umbrella, Hugging Face `harpomaxx/dga-detection` (CC BY
       2.0, con la atribución que exige) y 360 Netlab (datos de 2021).
-- [ ] «Status (2026)»: reescribir según el estado real tras la fase 5.
+- [x] «Status (2026)»: reescribir según el estado real tras la fase 5.
 
 ### 6.2 `docs/`
-- [ ] `docs/MVP.md`:
+- [x] `docs/MVP.md`:
   - §0 Instalación;
   - §8–9 Detector, con criterios verificados de nuevo;
   - sacar `--secondary` y la comprobación del diccionario de «A medias»;
   - métricas 2026 junto a las de 2021;
   - «Definición de terminado» (pruebas y CI que existen ahora).
-- [ ] `docs/ARCHITECTURE.md`:
+  *Hecho: medido de nuevo en un clon con Python 3.12.15; cada función indica su prueba y lo que cambió desde
+  la primera medición. Las dos secciones de métricas quedan juntas en «Métricas del detector».*
+- [x] `docs/ARCHITECTURE.md`:
   - §2 Stack (versiones nuevas, `skops`, sin `dnspython`, `pytest`);
   - §3 Estructura (`tests/`, `fetchdata.py`, `nlpdata.py`, `ml-data/MANIFEST`);
   - §4 Modelo de datos (formatos `.skops`, `.json`, `ng*.csv`, manifiesto, juegos 2021/2026);
@@ -639,29 +644,37 @@ actualizar»). En la voz y el idioma de cada documento: `README.md` en inglés, 
   - §9 Distribución (releases);
   - §11 decisiones D1–D7;
   - §12 marcar la deuda resuelta (1, 2, 3, 4 en parte, 5, 12, 14, 15, 16).
-- [ ] `docs/FUTURE.md`: marcar como hechas las partes de 1.1.1, 1.1.2, 1.1.3 (alineación), 1.1.6, 1.1.7 y
+- [x] `docs/FUTURE.md`: marcar como hechas las partes de 1.1.1, 1.1.2, 1.1.3 (alineación), 1.1.6, 1.1.7 y
       1.1.9 (CSV de `-C`) que cubre esta corrección. Anotar en 1.2.1 que no se ha pedido acceso a DGArchive (decisión del autor, 2026-10-19).
-- [ ] `docs/ESTUDIO.md`: añadir al principio una nota que diga que es la foto de 2021 y remita a
+- [x] `docs/ESTUDIO.md`: añadir al principio una nota que diga que es la foto de 2021 y remita a
       `docs/CORRECCIONES.md`. No cambiar nada más.
-- [ ] `docs/CORRECCIONES.md`: añadir el estado «Implementado» con la fecha y la versión, y las desviaciones
+- [x] `docs/CORRECCIONES.md`: añadir el estado «Implementado» con la fecha y la versión, y las desviaciones
       respecto al diseño, si las hubo.
+  *Hecho: estado en la cabecera y sección «Implementación y desviaciones» (no hay número de versión; se cita
+  el commit `96e4046`).*
 
 ### 6.3 `CLAUDE.md`
-- [ ] «Entorno, ejecución y pruebas»:
+- [x] «Entorno, ejecución y pruebas»:
   - quitar Rosetta y Python 3.9 como entorno de trabajo, que queda como entorno de `v2021`;
   - añadir `requirements-lock.txt`, `fetchdata.py --nltk` y los comandos de `pytest`.
-- [ ] Reglas:
+- [x] Reglas:
   - 5: hashes en los metadatos;
   - 6: actualizar librerías obliga a reentrenar, aunque ahora con `skops`;
   - 7: no hay pickles; `skops` con tipos de confianza;
   - 13: regenerar los datos y publicar una release nueva;
   - 15: el manifiesto.
-- [ ] Mapa de directorios: `tests/`, `fetchdata.py`, `nlpdata.py`, `ml-data/MANIFEST`.
+- [x] Mapa de directorios: `tests/`, `fetchdata.py`, `nlpdata.py`, `ml-data/MANIFEST`.
 
 ### 6.4 Verificación de la documentación
-- [ ] Ejecutar uno por uno los comandos de `README.md` y `CLAUDE.md` en un clon nuevo con el entorno 2026 y
+- [x] Ejecutar uno por uno los comandos de `README.md` y `CLAUDE.md` en un clon nuevo con el entorno 2026 y
       comprobar que dan lo que dicen.
-- [ ] Comprobar que todos los enlaces internos de `README.md` y de `docs/` apuntan a secciones que existen.
+  *Hecho (clon nuevo, Python 3.13.16, `pip install -r requirements.txt` y luego el lock): todos los ejemplos
+  de `lookdga.py`, `statsdga.py` (opción 1) y `detectdga.py`, incluida la cadena completa `--ngram` → `--main`
+  → `--secondary`/`--umbrella` → `--train` → `--test_*`, que reproduce las métricas publicadas; el comando de
+  `mydgas.dom` de 2026 da el mismo SHA‑256 que el manifiesto; `pytest` (300) y `pytest -m slow` (25) pasan.
+  El comando de `act` de `CLAUDE.md` es el que se verificó en la fase 5, sin cambios en el workflow.*
+- [x] Comprobar que todos los enlaces internos de `README.md` y de `docs/` apuntan a secciones que existen.
+  *Hecho: 16 enlaces internos y las referencias «§N» y «sección» entre documentos apuntan a algo que existe.*
 
 **Aceptación de la fase 6:** cada afirmación de `README.md`, `CLAUDE.md` y `docs/` sobre el comportamiento
 está verificada o marcada como no verificada (`CLAUDE.md`, regla 17), y los comandos documentados funcionan

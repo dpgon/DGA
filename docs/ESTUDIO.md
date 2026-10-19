@@ -1,5 +1,10 @@
 # Estudio del proyecto DGA
 
+> **Nota (2026-10-19):** este estudio es la foto del código de 2021 y no se actualiza. Desde entonces se
+> han corregido las versiones, los datos, el formato del modelo y varios errores: lo que cambió y por qué está
+> en `docs/CORRECCIONES.md`, y lo que hace hoy el proyecto, en `docs/MVP.md` y `docs/ARCHITECTURE.md`. Las
+> referencias de línea de este documento son las del commit `269b362`.
+
 > Estudio hecho el 2026-10-18 leyendo el código del repositorio `dpgon/DGA` (rama `main`, commit `269b362`).
 > No se ha ejecutado ningún script del proyecto. Lo que aquí se afirma sale de leer el código y de
 > inspeccionar los ficheros de datos con herramientas de solo lectura (`wc`, `head`, `sort`, `comm`, `strings`

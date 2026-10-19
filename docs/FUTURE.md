@@ -15,6 +15,10 @@ Por tanto, cada entrada de este documento tiene uno de estos dos orígenes, y nu
 Orden de etapas decidido por el usuario: **1.1 Puesta a punto → 1.2 Vigencia → 1.3 De la muestra a los
 dominios.**
 
+**Estado al 2026-10-19:** la corrección de versiones y datos de `docs/CORRECCIONES.md` (fases 1–5 de
+`TODO.md`) cubre parte de la etapa 1.1. Cada apartado lo indica en una línea **Estado**; lo que no la tiene
+sigue pendiente.
+
 ---
 
 ## 1.1 — Puesta a punto
@@ -32,6 +36,9 @@ y obtiene métricas que se pueden reproducir, con sus límites documentados.
   necesita red.
 - **Casos límite:** la primera ejecución no puede depender de descargas implícitas, como hoy el corpus de
   sílabas.
+- **Estado (2026-10-19): hecho en Linux y macOS, pendiente en Windows.** Se instala con
+  `requirements-lock.txt` en Python 3.12 y 3.13 nativos y `fetchdata.py --nltk` instala datos y corpus; ningún
+  script descarga nada al ejecutarse (C1, C8, C11). Windows se comprobará en la CI al publicar (fase 7).
 
 ### 1.1.2 Un modelo que cargue hoy
 - **Origen:** [deducido] `full.pkl` no carga en scikit-learn actual (`docs/MVP.md` §0).
@@ -39,6 +46,9 @@ y obtiene métricas que se pueden reproducir, con sus límites documentados.
   conjunto de referencia se publican junto al modelo.
 - **Casos límite:** cargar un modelo descargado no debe exigir confiar a ciegas en un fichero ejecutable
   (principio «seguro de manejar», `docs/IDEA.md`).
+- **Estado (2026-10-19): hecho.** Modelo reentrenado y guardado con skops, con metadatos y hashes; sus
+  veredictos sobre la referencia de Netlab y sus métricas se publican con él (C2, `docs/MVP.md`). El modelo de
+  2021 no se puede cargar en el entorno actual.
 
 ### 1.1.3 Veredictos fiables en el detector
 - **Origen:** [deducido] desalineación, descartes silenciosos y caída con lista vacía, verificados
@@ -48,6 +58,9 @@ y obtiene métricas que se pueden reproducir, con sus límites documentados.
   - cada dominio que no se evalúa aparece con su motivo;
   - una lista en la que no se evalúa nada no provoca un fallo;
   - mayúsculas, `www.` y subdominios tienen un tratamiento definido y documentado.
+- **Estado (2026-10-19): hecho, salvo el último punto.** Veredictos alineados, descartes con motivo y lista
+  vacía sin fallo (C12); las mayúsculas se pasan a minúsculas. `www.` y los subdominios no se evalúan y se dice
+  por qué, pero su tratamiento sigue sin decidir.
 
 ### 1.1.4 Sospecha por patrón creíble
 - **Origen:** [deducido] `google.com` sale como sospechoso de 6 familias (`docs/MVP.md` §6).
@@ -67,7 +80,7 @@ y obtiene métricas que se pueden reproducir, con sus límites documentados.
 
 ### 1.1.6 Conjuntos de evaluación independientes y métricas publicadas
 - **Origen:** [deducido] `--secondary` roto; Alexa contaminada al 62 %; el 7 % del conjunto DGA secundario
-  está en el de entrenamiento; ninguna métrica publicada (`docs/MVP.md`, «A medias»); [usuario] métricas
+  está en el de entrenamiento; ninguna métrica publicada (`docs/MVP.md` de 2026-10-18, «A medias»); [usuario] métricas
   honestas.
 - **Aceptación:**
   - el conjunto secundario se construye siguiendo la documentación;
@@ -75,13 +88,22 @@ y obtiene métricas que se pueden reproducir, con sus límites documentados.
   - el repositorio publica las métricas de cada variante del modelo, con el procedimiento para
     reproducirlas.
 - **Casos límite:** sustituir Alexa, retirado en 2022, por una fuente legítima vigente.
+- **Estado (2026-10-19): hecho para `full` y `tiny`, que se publican.** `--secondary` funciona (C6); los conjuntos excluyen
+  los dominios y SLD del entrenamiento y lo comprueban al construirse (C5); Umbrella sustituye a Alexa (C3).
+  Las métricas de los modelos de 2021 y 2026 están en `docs/MVP.md`. De las otras variantes, solo `ngram` se
+  ha medido, en una prueba sin publicar.
 
 ### 1.1.7 Reproducir el entrenamiento completo
 - **Origen:** [deducido] `--ngram`, `--main`, `--alexa`, `--train` y la opción 3 de estadísticas están sin
-  verificar (`docs/MVP.md`, «Implementado, no verificado»).
+  verificar (`docs/MVP.md` de 2026-10-18, «Implementado, no verificado»).
 - **Aceptación:** desde las fuentes documentadas, la cadena completa (diccionario → conjuntos → entrenamiento
   → evaluación) se ejecuta de principio a fin y da métricas iguales a las publicadas, dentro de un margen
   declarado. Se documenta cuánto tarda.
+- **Estado (2026-10-19): hecho para `full`.** La cadena completa se ejecutó en la fase 5 (unos 11 minutos en
+  Apple Silicon) y se repitió en un clon nuevo, con Python 3.13 en lugar de 3.12: el diccionario de n-gramas
+  sale idéntico byte a byte, y `full` da las mismas matrices de confusión en las tres evaluaciones. Los
+  ficheros `.skops` no son idénticos byte a byte (**suposición:** guardan datos variables, como fechas). La
+  opción 3 de estadísticas sigue sin ejecutar.
 
 ### 1.1.8 Fidelidad de los generadores
 - **Origen:** [deducido] solo 11 de 50 variantes tienen confirmación externa (`docs/MVP.md` §3); [usuario]
@@ -100,6 +122,7 @@ y obtiene métricas que se pueden reproducir, con sus límites documentados.
   - todos los modos de reparto del corpus funcionan;
   - el menú de estadísticas se puede usar también sin interacción;
   - un fallo de un generador se informa en lugar de perderse.
+- **Estado (2026-10-19): solo el primer punto.** `-C` produce un CSV limpio (C13). El resto sigue pendiente.
 
 ### 1.1.10 Decidir el destino de lo abandonado
 - **Origen:** [deducido] comprobación DNS sin uso y modelo «tiny» sin uso en el detector; [usuario]
@@ -117,6 +140,9 @@ y obtiene métricas que se pueden reproducir, con sus límites documentados.
   - cada funcionalidad de `docs/MVP.md` tiene una prueba automática que comprueba su criterio de aceptación;
   - las pruebas pasan en las tres plataformas;
   - el README coincide con el comportamiento y declara las limitaciones conocidas.
+- **Estado (2026-10-19): en parte.** Hay pruebas automáticas de caracterización y de cada corrección, y CI
+  en las tres plataformas, comprobada en local en Linux y macOS. No todas las funcionalidades tienen una
+  prueba de su criterio de aceptación (por ejemplo, las opciones 4-9 de estadísticas).
 
 ---
 
@@ -129,6 +155,9 @@ y obtiene métricas que se pueden reproducir, con sus límites documentados.
 - **Aceptación:** el proyecto documenta una o varias fuentes públicas vigentes de dominios DGA posteriores a
   2021 y un procedimiento reproducible para incorporarlos. Se indica qué familias y qué periodo cubren.
 - **Casos límite:** fuentes discontinuadas. Hay que comprobar si el feed de 360 Netlab sigue vivo.
+- **Estado (2026-10-19):** el feed de 360 Netlab ya no responde. Se evalúa con el dataset de Hugging Face
+  `harpomaxx/dga-detection`, pero sus dominios son de 2016 o no tienen fecha, así que **no hay datos DGA reales
+  posteriores a 2021**. El autor decidió **no pedir acceso a DGArchive** por ahora (2026-10-19).
 
 ### 1.2.2 Medir el envejecimiento del modelo de 2021
 - **Origen:** [usuario] medir cuánto ha envejecido.
@@ -141,6 +170,9 @@ y obtiene métricas que se pueden reproducir, con sus límites documentados.
   conjuntos independientes, se publican junto a las del de 2021, y el usuario puede elegir cualquiera de los
   dos.
 - **Casos límite:** que una o dos familias no dominen el entrenamiento, como hoy banjori y emotet (66 %).
+- **Estado (2026-10-19): en parte.** El modelo de 2026 se entrenó con dominios legítimos de 2026, pero con
+  los mismos dominios DGA de 2021, a falta de otros (1.2.1). El de 2021 solo se puede usar en su entorno
+  (etiqueta `v2021`), no elegir desde el actual.
 
 ### 1.2.4 Generadores de familias recientes con algoritmo publicado
 - **Origen:** [usuario] solo cuando el algoritmo ya esté publicado por terceros.
@@ -196,6 +228,8 @@ y obtiene métricas que se pueden reproducir, con sus límites documentados.
 - **Demo web o interfaz gráfica.** No es objetivo hoy, pero ayudaría a quien llega desde GitHub.
 - **Lectura de registros de DNS o proxy.** No es objetivo; sería el paso siguiente a la entrada por fichero.
 - **Compatibilidad de licencias.** GPL v2 del proyecto, CC BY‑SA 4.0 de las reglas y la licencia de los
-  algoritmos de origen. No es una funcionalidad, pero conviene revisarlo antes de publicar 1.1.
+  algoritmos de origen. No es una funcionalidad, pero conviene revisarlo antes de publicar 1.1. Las licencias
+  de los datos ya están revisadas en `ml-data/MANIFEST` (2026-10-19); las de las reglas y los algoritmos, no.
 - **Peso del repositorio.** 367 MB de datos versionados, con `full.pkl` a 100 KB del límite de GitHub.
-  Pertenece a la arquitectura, pero afecta a la experiencia de quien clona.
+  Pertenece a la arquitectura, pero afecta a la experiencia de quien clona. **Resuelto en 2026** (C8): los
+  datos son assets de release; siguen en el historial de git.
