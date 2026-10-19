@@ -11,6 +11,11 @@
 > Cada funcionalidad lleva su **criterio de aceptación** en forma de comando. «Verificado» quiere decir que se
 > ejecutó y se observó ese resultado. El proyecto no tiene pruebas automáticas, así que ninguna
 > funcionalidad tiene una prueba que la cubra.
+>
+> **Actualización (2026-10-19, fase 5 de `TODO.md`):** el proyecto se instala ya con
+> `pip install -r requirements-lock.txt` en Python 3.12 y 3.13 nativos (probado en Apple Silicon, y en Linux con
+> `act`), y el detector usa un modelo reentrenado, guardado con skops: ver «Métricas del modelo de 2026». El
+> resto del documento describe la medición del 2026-10-18 en el entorno 2021; se revisará en la fase 6.
 
 ---
 
@@ -257,6 +262,82 @@ Las familias aritméticas, como `newgoz` o `zeus`, se detectan al 100 %.
 
 **Tiempos** (Apple Silicon bajo Rosetta): `--secondary --set 2026`, 34 min (2.565.335 dominios leídos);
 `--umbrella`, 2 min; cada evaluación, entre 1 y 7 s.
+
+## Métricas del modelo de 2026
+
+Modelo reentrenado en la fase 5 de `TODO.md` el 2026-10-19, en Python 3.13.16 nativo (Apple Silicon) con las
+versiones de `requirements-lock.txt` (scikit-learn 1.9.1). Mismos hiperparámetros que en 2021 (30 árboles,
+`min_samples_leaf=5`, `random_state=1`); cambian los datos:
+- diccionario de n-gramas: `ml-data/2026/tranco-ngram.dom` (Tranco `467YX`, 2.595.070 dominios);
+- legítimos de entrenamiento: `ml-data/2026/tranco-main.dom` (Tranco `467YX`, líneas 1–1.500.000);
+- DGA de entrenamiento: `dga.dom` de 2021 (360 Netlab), el mismo que entonces, porque no hay otro;
+- lista de sufijos: la de Mozilla del 2026-10-17, en lugar de la de 2021.
+
+Los metadatos (`ml-data/full.json`, `tiny.json`) guardan las versiones, los SHA‑256 de todo lo anterior, los
+hiperparámetros y estas métricas.
+
+**Conjuntos de evaluación**, construidos igual que en la fase 4 pero excluyendo los datos de entrenamiento de
+2026:
+
+| Conjunto | Origen | Leídos | Excluidos (en el entrenamiento) | No evaluables | Evaluados |
+|---|---|---:|---:|---:|---:|
+| Secundario (`--secondary`) | `tranco` (legítimos) | 500.000 | 75.534 | 9.821 | 414.645 |
+| | `own` (DGA) | 150.000 | 23.390 | 19.501 | 107.109 |
+| | `hf` (DGA) | 1.915.335 | 630.466 | 7.796 | 1.277.073 |
+| Umbrella (`--umbrella`) | `umbrella` (legítimos) | 275.443 | 232.888 | 12.925 | 29.681 |
+
+En Umbrella se excluyen muchos más dominios que en la fase 4: Tranco y Umbrella de octubre de 2026 coinciden
+mucho, y el entrenamiento de 2026 cubre casi toda la lista Tranco: líneas 1–1.500.000 (`main`) y
+2.000.001–4.595.070 (`ngram`). Con la lista de
+sufijos nueva hay 275.443 dominios registrables únicos, frente a 267.029.
+
+**Resultados**, con los de 2021 (fase 4) para comparar:
+
+| Conjunto | Modelo | Exactitud | Falsos positivos en legítimos | DGA detectados | Precisión DGA | 2021: FP / detectados |
+|---|---|---:|---:|---:|---:|---:|
+| Secundario | `full` | 0,836 | 1,2 % (4.844 de 414.645) | 79,0 % (1.093.402 de 1.384.182) | 0,996 | 1,9 % / 78,8 % |
+| Secundario | `tiny` | 0,646 | 8,2 % (34.105 de 414.645) | 56,4 % (780.990 de 1.384.182) | 0,958 | 6,1 % / 54,7 % |
+| Umbrella | `full` | 0,632 | 36,8 % (10.935 de 29.681) | — | — | 10,8 % / — |
+| Umbrella | `tiny` | 0,807 | 19,3 % (5.714 de 29.681) | — | — | 10,4 % / — |
+
+Matrices de confusión (filas: real legítimo / DGA; columnas: predicho legítimo / DGA):
+- secundario `full`: `[[409801, 4844], [290780, 1093402]]`;
+- secundario `tiny`: `[[380540, 34105], [603192, 780990]]`;
+- Umbrella `full`: `[[18746, 10935], [0, 0]]`;
+- Umbrella `tiny`: `[[23967, 5714], [0, 0]]`.
+
+Por origen, con `full` (con `tiny`): `tranco` acierta el 98,8 % (91,8 %), `own` el 71,9 % (48,4 %) y `hf` el
+79,6 % (57,1 %). En la partición de prueba de `--train` (20 % de `main.pkl`, no independiente), `full` da 0,986
+y `tiny` 0,936.
+
+**Por familia**, con `full`: las de palabras siguen sin detectarse (`pizd` 0 %, `nymaim2` 0 %, `suppobox`
+0,1 %, `volatile` 0,1 %, `matsnu` 2,3 %, `gozi` 3,8 %); las aritméticas, como `newgoz` o `zeus`, al 100 %.
+
+**Cómo leerlo:**
+- **En el secundario, `full` iguala o mejora al de 2021:** menos falsos positivos (1,2 % frente a 1,9 %) y los
+  mismos DGA detectados. `tiny` da más falsos positivos (8,2 % frente a 6,1 %).
+- **La subida de falsos positivos en Umbrella no es del modelo, sino del conjunto.** Lo comprobé así:
+  - sobre los 21.140 dominios que están en los dos conjuntos Umbrella (el de la fase 4 y este), el modelo de
+    2021 marca el 45,1 % y el de 2026 el 44,2 %;
+  - los 98.700 dominios que solo estaban en el de la fase 4 (los que ahora se excluyen por estar en el Tranco
+    de 2026) daban un 3,5 % de falsos positivos con el modelo de 2021;
+  - lo que queda son sobre todo nombres de infraestructura aleatorios: 8.857 de los 10.935 falsos positivos
+    son de `cloudfront.net` (por ejemplo `d3lnoy3aplwg2k.cloudfront.net`), y le siguen `trafficmanager.net`,
+    `execute-api.*.amazonaws.com` y `akamaihd.net`. La lista de sufijos los trata como dominios registrables;
+  - con sufijos de una etiqueta (`.com`, `.net`…), el modelo marca el 2,3 % (4.710 dominios); sin
+    `cloudfront.net` ni `amazonaws.com`, el 9,4 %.
+
+  En una red real, esos nombres de CDN serán la principal fuente de falsos positivos. Es una limitación de un
+  detector que solo mira la forma del nombre.
+- **El ejemplo del README da los mismos veredictos que en 2021**, y `google.com`, `facebook.com` y
+  `wikipedia.org` dan «No DGA domain». De los 188 dominios de `tests/data/referencia_netlab.csv` detecta 172
+  (91,5 %); están en `dga.dom`, así que es una comprobación de cordura, no una métrica.
+- Siguen valiendo las advertencias de la fase 4: no hay dominios DGA reales posteriores a 2021, y la exclusión
+  es estricta por SLD.
+
+**Tiempos** (Apple Silicon nativo, 12 núcleos): `--ngram`, 19 s; `--main`, 5 min 40 s (2.904.183 dominios);
+`--secondary`, 3 min 54 s; `--umbrella`, 23 s; `--train full`, 33 s; `--train tiny`, 9 s; cada evaluación,
+entre 2 y 5 s. Bajo Rosetta, en la fase 4, `--secondary` tardó 34 min.
 
 ## Implementado, no verificado
 

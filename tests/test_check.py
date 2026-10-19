@@ -1,12 +1,15 @@
 '''
-Characterization tests of detectdga.py --check with the bundled 2021 model (docs/MVP.md sections 8-9).
-They need ml-data/full.pkl, full-scaler.pkl, tranco.ng1-4 and the NLTK brown corpus (NLTK_DATA).
+Characterization tests of detectdga.py --check with the model of the 2026 data set (docs/MVP.md sections 8-9; the
+README example gives the same verdicts as the 2021 model). They need ml-data/full.skops, full-scaler.skops,
+full.json, tranco.ng1-4.csv and the NLTK brown corpus (NLTK_DATA).
 '''
+import csv
+import os
 import re
 
 import pytest
 
-from conftest import run
+from conftest import ROOT, run
 
 pytestmark = pytest.mark.model
 
@@ -39,6 +42,22 @@ def test_check_readme_example(nltk_data):
         "google.com": "No DGA domain",
         "facebook.com": "No DGA domain",
     }
+
+
+def test_check_well_known_domains(nltk_data):
+    out = run("detectdga.py", "--check", "google.com", "facebook.com", "wikipedia.org").stdout
+    assert set(verdicts(out).values()) == {"No DGA domain"} and len(verdicts(out)) == 3
+
+
+def test_check_netlab_reference(nltk_data):
+    # Domains of 12 families confirmed by the 360 Netlab feed (C2). They are in dga.dom, the training data, so
+    # this is a sanity check, not a metric: the 2026 model detects 172 of 188. A threshold, not equality, so that
+    # a retrained model can pass
+    with open(os.path.join(ROOT, "tests", "data", "referencia_netlab.csv")) as f:
+        domains = [row["domain"] for row in csv.DictReader(line for line in f if not line.startswith("#"))]
+    result = verdicts(run("detectdga.py", "--check", *domains).stdout)
+    assert len(result) == len(domains)
+    assert sum(v == "DGA generated" for v in result.values()) >= 0.85 * len(domains)
 
 
 @pytest.mark.slow

@@ -5,49 +5,44 @@ on:
   pull_request:
 
 jobs:
-  tests-2021:
-    # 2021 environment: the bundled model only loads with the exact versions of requirements.txt (Python 3.9)
-    runs-on: ubuntu-22.04
+  tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-14, windows-latest]
+        python-version: ["3.12", "3.13"]
+    runs-on: ${{ matrix.os }}
     env:
       NLTK_DATA: ${{ github.workspace }}/.nltk_data
       PYTHONDONTWRITEBYTECODE: "1"
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: ${{ matrix.python-version }}
           cache: pip
           cache-dependency-path: |
-            requirements.txt
+            requirements-lock.txt
             requirements-dev.txt
 
       - name: Install dependencies
-        run: pip install -r requirements.txt -r requirements-dev.txt
-
-      - name: Cache NLTK brown corpus
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.NLTK_DATA }}
-          key: nltk-brown-v1
-
-      - name: Download NLTK brown corpus
-        run: |
-          if [ ! -d "$NLTK_DATA/corpora/brown" ]; then
-            python -m nltk.downloader -d "$NLTK_DATA" brown
-          fi
+        run: pip install -r requirements-lock.txt -r requirements-dev.txt
 
       # The data files are release assets (C8), listed in ml-data/MANIFEST: a new manifest means new files
-      - name: Cache data files
+      - name: Cache data files and NLTK brown corpus
         uses: actions/cache@v4
         with:
           path: |
             ml-data
-            DGAs/wordlist/top-1m.csv
-          key: data-${{ hashFiles('ml-data/MANIFEST') }}
+            ${{ env.NLTK_DATA }}
+          key: data-${{ runner.os }}-${{ hashFiles('ml-data/MANIFEST') }}-nltk-brown-v1
 
-      - name: Download and verify data files
-        run: python fetchdata.py
+      - name: Download and verify data files and the NLTK brown corpus
+        run: python fetchdata.py --nltk
 
       - name: Run tests (without the slow ones)
         run: pytest

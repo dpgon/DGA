@@ -37,7 +37,7 @@ def server(tmp_path):
     httpd.server_close()
 
 
-def entry(name, content, url, sha=None, sets="2021"):
+def entry(name, content, url, sha=None, sets="2026"):
     sha = sha or hashlib.sha256(content).hexdigest()
     return f"ml-data/{name}\t{url}/{name}\t{len(content)}\t{sha}\ttest\ttest\t{sets}\n"
 
@@ -96,11 +96,21 @@ def test_only_the_selected_set(tmp_path, server):
     (www / "old.dom").write_bytes(b"old\n")
     (www / "new.dom").write_bytes(b"new\n")
     (www / "both.dom").write_bytes(b"both\n")
-    lines = [entry("old.dom", b"old\n", url), entry("new.dom", b"new\n", url, sets="2026"),
+    lines = [entry("old.dom", b"old\n", url, sets="2021"), entry("new.dom", b"new\n", url),
              entry("both.dom", b"both\n", url, sets="2021,2026")]
-    proc, root = fetch(tmp_path, lines, "--set", "2026")
+    proc, root = fetch(tmp_path, lines, "--set", "2021")
     assert proc.returncode == 0, proc.stderr
-    assert sorted(p.name for p in (root / "ml-data").iterdir()) == ["both.dom", "new.dom"]
+    assert sorted(p.name for p in (root / "ml-data").iterdir()) == ["both.dom", "old.dom"]
+
+
+def test_default_set_is_2026(tmp_path, server):
+    # The default is the data set of the retrained model; 2021 is the historical one (release v2021)
+    www, url, requests = server
+    (www / "old.dom").write_bytes(b"old\n")
+    (www / "new.dom").write_bytes(b"new\n")
+    proc, root = fetch(tmp_path, [entry("old.dom", b"old\n", url, sets="2021"), entry("new.dom", b"new\n", url)])
+    assert proc.returncode == 0, proc.stderr
+    assert sorted(p.name for p in (root / "ml-data").iterdir()) == ["new.dom"]
 
 
 def test_from_local_directory(tmp_path):
@@ -130,10 +140,15 @@ def test_unreachable_url_fails(tmp_path):
 
 
 def test_repository_manifest_is_valid():
-    # The real manifest parses, and the default set has the files the 2021 model needs
+    # The real manifest parses, the default set has the files the model needs, and the 2021 set keeps the 2021 model
     import fetchdata
-    files = {e["file"] for e in fetchdata.readmanifest(f"{ROOT}/ml-data/MANIFEST") if "2021" in e["set"]}
-    assert {"ml-data/full.pkl", "ml-data/full-scaler.pkl", "ml-data/tranco.ng1", "ml-data/tranco.ng4"} <= files
+    entries = fetchdata.readmanifest(f"{ROOT}/ml-data/MANIFEST")
+    files = {e["file"] for e in entries if "2026" in e["set"]}
+    assert {"ml-data/full.skops", "ml-data/full-scaler.skops", "ml-data/full.json", "ml-data/tiny.skops",
+            "ml-data/tiny-scaler.skops", "ml-data/tiny.json", "DGAs/wordlist/effective_tld_names.dat"} <= files
+    assert {f"ml-data/tranco.ng{n}.csv" for n in range(1, 5)} <= files
+    files2021 = {e["file"] for e in entries if "2021" in e["set"]}
+    assert {"ml-data/full.pkl", "ml-data/full-scaler.pkl", "ml-data/tranco.ng1", "ml-data/tranco.ng4"} <= files2021
 
 
 # --- Files that are not redistributed: extracted from a zip, or derived from another file ------------------

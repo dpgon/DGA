@@ -21,31 +21,32 @@ This repository is a 2021 snapshot that is being brought up to date. What works 
 checked, is listed in [`docs/MVP.md`](docs/MVP.md). In short:
 
 - `lookdga.py` and `statsdga.py` work as described below.
-- `detectdga.py --check` works, but **only in a 2021 environment** (Python 3.9, x86_64, the exact versions in
-  `requirements.txt`). The bundled model doesn't load with current scikit-learn.
-- No accuracy figures have been published yet, and there are no automated tests.
+- Since October 2026, everything runs on Python 3.12 and 3.13, also natively on Apple Silicon. The model was
+  retrained on 2026 data and is saved with [skops](https://skops.readthedocs.io/) instead of pickle.
+- Accuracy figures on evaluation sets that share no domain with the training data are in
+  [`docs/MVP.md`](docs/MVP.md): with the full model, 1.2% false positives on Tranco and 79% of the DGA domains
+  detected. Random-looking CDN names, such as `d3lnoy3aplwg2k.cloudfront.net`, are often flagged as DGA.
+- There are automated tests (see Tests).
 - The plan (setup refresh, recent DGA data, YARA-based sample identification) is in
   [`docs/FUTURE.md`](docs/FUTURE.md).
 
 ## Install
-Clone the repository and install the dependencies with pip. It is preferable to use of a virtual environment of python3.7 or above:
+Clone the repository and install the dependencies with pip, preferably in a virtual environment of Python 3.12 or
+3.13:
 
-`$ pip install -r requirements.txt`
+`$ pip install -r requirements-lock.txt`
 
-> **Known issue (2026):** the pinned versions (scikit-learn 0.24.2, pandas 1.3.1, scipy 1.7.1) only install on
-> **Python 3.9 for x86_64**. They have no wheels for Apple Silicon or for newer Python versions. Tested setup
-> on an Apple Silicon Mac, using Rosetta:
->
-> ```
-> $ arch -x86_64 /usr/bin/python3 -m venv venv39x
-> $ arch -x86_64 venv39x/bin/pip install --only-binary :all: -r requirements.txt
-> ```
->
-> `lookdga.py` only uses the standard library and needs none of these packages. See [`docs/MVP.md`](docs/MVP.md) §0.
+`requirements-lock.txt` pins the exact versions the project is tested with; `requirements.txt` lists only the
+direct dependencies with their minimum versions. `lookdga.py` only uses the standard library and needs none of
+these packages.
 
-Cloning is not enough since 2026: the model, the n-gram dictionary and the domain lists (about 370 MB) are
-not in git, but in the [`v2021` release](https://github.com/dpgon/DGA/releases/tag/v2021). Download them,
-together with the NLTK `brown` corpus that `detectdga.py` and `statsdga.py` use to count syllables:
+> **The 2021 environment.** The model of the master's project (release `v2021`) was saved with pickle and
+> scikit-learn 0.24.2, and only loads with the exact versions of 2021, on Python 3.9 for x86_64. That setup is
+> kept in the [`v2021` tag](https://github.com/dpgon/DGA/tree/v2021); see [`docs/MVP.md`](docs/MVP.md) §0.
+
+Cloning is not enough since 2026: the model, the n-gram dictionary and the domain lists are not in git, but in
+release assets or at their original source. Download them, together with the NLTK `brown` corpus that
+`detectdga.py` and `statsdga.py` use to count syllables:
 
 ```
 $ python fetchdata.py --nltk
@@ -59,9 +60,10 @@ directory of `NLTK_DATA` if it is set. Without `--nltk`, install the corpus your
 $ python -m nltk.downloader -d ~/nltk_data brown
 ```
 
-`python fetchdata.py --set 2026` installs the 2026 data set as well (current Tranco and Umbrella lists, public
-suffix list, DGA domains from Hugging Face). Files that can't be redistributed are downloaded from their original
-source; the details are in `ml-data/MANIFEST`. The bundled model still uses the 2021 data.
+This installs the 2026 data set: the model and its n-gram dictionary, and the lists they come from (Tranco and
+Umbrella lists of October 2026, DGA domains from Hugging Face). Files that can't be redistributed are downloaded
+from their original source; the details are in `ml-data/MANIFEST`. `python fetchdata.py --set 2021` installs the
+data of the master's project (release `v2021`) instead.
 
 The scripts never download anything themselves: if a data file or the corpus is missing, they stop and say
 which command to run.
@@ -140,9 +142,12 @@ To create to second test dataset:
 $ python lookdga.py -d 2019-12-31 -n 3000 -C > ml-data/mydgas.dom
 ```
 
-The n-gram dictionary was create and saved in the repository (since 2026, in the `v2021` release, downloaded by `fetchdata.py`), but it's possible to recreate it with:
+The n-gram dictionary was create and saved in the repository (since 2026, in the `model-2026` release, downloaded by `fetchdata.py`), but it's possible to recreate it with:
 
 `$ python3 detectdga.py --ngram`
+
+> **Note (2026):** the dictionary is saved as text, one CSV file per n-gram length (`ml-data/tranco.ng1.csv` …
+> `ng4.csv`).
 
 Now, we can create the main dataset:
 
@@ -154,19 +159,23 @@ To create the secondary dataset or the alexa dataset use --secondary or --alexa 
 > - `--alexa` and `--test_alexa` are deprecated aliases of `--umbrella` and `--test_umbrella`: the Alexa set
 >   shared 62% of its domains with the training set. The Umbrella set uses the Cisco Umbrella list of the 2026
 >   data set, reduced to registrable domains.
-> - `--secondary --set 2026` builds the secondary set from the 2026 data set, adding the Hugging Face DGA
->   domains. Without `--set`, it uses the 2021 files.
+> - `--ngram`, `--main`, `--secondary` and `--umbrella` use the 2026 data set (`ml-data/2026/…`, plus the
+>   Hugging Face DGA domains in the secondary set). `--set 2021` uses the 2021 files instead.
 > - Evaluation sets leave out every domain and SLD of the training data, print what they excluded (also saved
 >   in `ml-data/<set>.json`) and report the results by origin.
-> - The metrics of the 2021 model on these sets are in [`docs/MVP.md`](docs/MVP.md) («Métricas del modelo de
->   2021, medidas en 2026»): with the full model, 1.9% false positives on Tranco, 10.8% on Umbrella, and 78.8%
->   of the DGA domains detected.
+> - The metrics of the 2021 and 2026 models on these sets are in [`docs/MVP.md`](docs/MVP.md).
 >
-> These commands overwrite files in `ml-data/` and are slow: `--secondary --set 2026` took 34 minutes and
-> `--umbrella` 2 minutes (Apple Silicon, Rosetta). `--main` and `--ngram` were not measured. Back up the files
+> These commands overwrite files in `ml-data/`. On an Apple Silicon Mac (12 cores), `--main` took 6 minutes,
+> `--secondary` 4 minutes, and `--ngram`, `--umbrella` and `--train` less than a minute each. Back up the files
 > you want to keep first.
 
 The repository has the full model (downloaded by `fetchdata.py`), but it's possible to train it or train a different model (ngram, nosyll...): 
+
+> **Note (2026):** models are saved in `ml-data/<model>.skops`, with their scaler (`<model>-scaler.skops`) and
+> their metadata (`<model>.json`: versions, SHA-256 of the input files, n-gram dictionary and public suffix list,
+> hyperparameters and metrics). A model doesn't load if its dictionary, suffix list or scaler don't match its
+> metadata. `--test_secondary` and `--test_umbrella` add their metrics to the metadata.
+
 
 `$ python detectdga.py --train ngram`
 
@@ -189,8 +198,7 @@ Finally, to test a domains with the full model: (-b option to try bruteforce, re
 
 ## Tests
 
-Tests use `pytest` and run from the repository root, in the 2021 environment described above, after
-`python fetchdata.py --nltk`:
+Tests use `pytest` and run from the repository root after `python fetchdata.py --nltk`:
 
 ```
 $ pip install -r requirements-dev.txt

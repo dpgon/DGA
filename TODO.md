@@ -463,43 +463,43 @@ hasta que el modelo nuevo funcione: en medio, el modelo de 2021 no carga.
 Depende de: el anexo del sondeo (1.6), las fases 2–4 y los datos del juego `2026`.
 
 ### 5.1 Requisitos y entorno (C1)
-- [ ] Reescribir `requirements.txt` con dependencias **directas** y cotas inferiores validadas en el sondeo:
+- [x] Reescribir `requirements.txt` con dependencias **directas** y cotas inferiores validadas en el sondeo:
   - scikit-learn, pandas, numpy, nltk y skops;
   - quitar `dnspython`;
   - quitar las transitivas.
-- [ ] Hacer perezoso el import de `dns.resolver` (`detectdga.py:10`): moverlo dentro de `existdomain()`
+- [x] Hacer perezoso el import de `dns.resolver` (`detectdga.py:10`): moverlo dentro de `existdomain()`
       (código muerto) para que importar `detectdga` no exija `dnspython`. Añadir un comentario que remita a
       `docs/FUTURE.md` §1.1.10.
-- [ ] Generar `requirements-lock.txt` con `uv pip compile requirements.txt --universal --python-version 3.12
+- [x] Generar `requirements-lock.txt` con `uv pip compile requirements.txt --universal --python-version 3.12
       -o requirements-lock.txt`.
-- [ ] Actualizar `requirements-dev.txt` a un `pytest` actual.
-- [ ] Corregir las roturas y avisos del anexo del sondeo (`docs/CORRECCIONES.md`). No se encontró ninguna
+- [x] Actualizar `requirements-dev.txt` a un `pytest` actual.
+- [x] Corregir las roturas y avisos del anexo del sondeo (`docs/CORRECCIONES.md`). No se encontró ninguna
       rotura de API de pandas 3.0, numpy 2 ni scikit-learn 1.9; los `df.drop(..., inplace=True)` funcionan. La
       rotura n.º 1 (`dnspython`) es la casilla anterior; la n.º 3 (`ResourceWarning`) se resuelve en 5.2. Queda:
-  - [ ] `DGAs/pizd.py:21`: sustituir `datetime.utcfromtimestamp(0)` (obsoleto) por un equivalente con zona
+  - [x] `DGAs/pizd.py:21`: sustituir `datetime.utcfromtimestamp(0)` (obsoleto) por un equivalente con zona
         horaria que dé **el mismo resultado**. Lo comprueban la instantánea (1.3) y la referencia de Netlab de
         pizd.
-- [ ] Si al empezar la fase hay versiones más nuevas que las del sondeo, repetir el sondeo de 1.6 con ellas y
+- [x] Si al empezar la fase hay versiones más nuevas que las del sondeo, repetir el sondeo de 1.6 con ellas y
       añadir aquí una casilla por cada rotura nueva.
 - [ ] **Verificar regresiones:** en el entorno 2026, `pytest -m "not model"` pasa. En particular, la
       instantánea de generadores (1.3) es **idéntica**: el salto de versiones no debe cambiar ningún dominio
       generado.
 
 ### 5.2 Persistencia segura y metadatos (C2, C10)
-- [ ] `ngram.py`: sustituir `to_pickle`/`read_pickle` (`ngram.py:45-55`) por un formato de texto: un CSV por
+- [x] `ngram.py`: sustituir `to_pickle`/`read_pickle` (`ngram.py:45-55`) por un formato de texto: un CSV por
       orden (`tranco.ng1.csv` … `ng4.csv`, columnas `ngrama,valor`).
-- [ ] Probar en `tests/test_ngram.py`:
+- [x] Probar en `tests/test_ngram.py`:
   - guardar y cargar conserva todos los valores;
   - `getall()` da los mismos resultados que con el diccionario de 2021 convertido;
   - n-gramas con comillas no rompen nada.
-- [ ] Sustituir el acceso con `eval` de `_checkdom()` (`ngram.py:61-62`) por un acceso directo, dado que se
+- [x] Sustituir el acceso con `eval` de `_checkdom()` (`ngram.py:61-62`) por un acceso directo, dado que se
       cambia el formato. La prueba anterior lo cubre.
-- [ ] `detectdga.py`:
+- [x] `detectdga.py`:
   - guardar modelo y escalador con `skops` en `traindata()` (`:564,571`);
   - cargarlos con `skops` y una lista explícita de tipos de confianza en `testsecdata()` (`:623,629`) y
     `testdomains()` (`:695,701`);
   - nombres `ml-data/{variante}.skops` y `{variante}-scaler.skops`.
-- [ ] Escribir el fichero de metadatos `ml-data/{variante}.json` al entrenar, con:
+- [x] Escribir el fichero de metadatos `ml-data/{variante}.json` al entrenar, con:
   - versiones de Python y de las librerías;
   - fecha;
   - ID Tranco y fuentes DGA con su SHA‑256;
@@ -507,28 +507,28 @@ Depende de: el anexo del sondeo (1.6), las fases 2–4 y los datos del juego `20
   - hiperparámetros;
   - recuentos de exclusión (4.1);
   - métricas.
-- [ ] Al cargar, comprobar los SHA‑256 del diccionario y de la lista de sufijos contra los metadatos. Si no
+- [x] Al cargar, comprobar los SHA‑256 del diccionario y de la lista de sufijos contra los metadatos. Si no
       coinciden, terminar con un mensaje que diga cuál no coincide.
-- [ ] Escribir `tests/test_model.py`:
+- [x] Escribir `tests/test_model.py`:
   - carga sin `pickle`, con un modelo pequeño entrenado en la prueba;
   - un diccionario con el hash alterado se rechaza;
   - un tipo que no está en la lista de confianza se rechaza.
-- [ ] C10: `n_jobs=-1` en `RandomForestClassifier` (`detectdga.py:567`) y fijar `model.n_jobs` al cargar.
+- [x] C10: `n_jobs=-1` en `RandomForestClassifier` (`detectdga.py:567`) y fijar `model.n_jobs` al cargar.
       Probarlo en `tests/test_model.py`.
 
 ### 5.3 Activar la lista de sufijos nueva (C7)
-- [ ] Sustituir `DGAs/wordlist/effective_tld_names.dat` por la lista de 3.2. Anotar su fecha y su SHA‑256 en
+- [x] Sustituir `DGAs/wordlist/effective_tld_names.dat` por la lista de 3.2. Anotar su fecha y su SHA‑256 en
       el manifiesto. La de 2021 sigue en `v2021`.
-- [ ] Añadir sobre los 154 sufijos manuales (`detectdga.py:31-58`) un comentario que diga de dónde salen
+- [x] Añadir sobre los 154 sufijos manuales (`detectdga.py:31-58`) un comentario que diga de dónde salen
       («extraídos de Alexa top 1M, 2021»).
-- [ ] Actualizar `tests/test_sldtld.py`: la lista por defecto es la nueva.
+- [x] Actualizar `tests/test_sldtld.py`: la lista por defecto es la nueva.
 
 ### 5.4 Reentrenamiento
-- [ ] Copiar `ml-data/` fuera del repositorio antes de regenerar nada (`CLAUDE.md`, regla 13).
-- [ ] `--ngram` con el `tranco-ngram.dom` de 2026, en el formato nuevo de 5.2.
+- [x] Copiar `ml-data/` fuera del repositorio antes de regenerar nada (`CLAUDE.md`, regla 13).
+- [x] `--ngram` con el `tranco-ngram.dom` de 2026, en el formato nuevo de 5.2.
 - [ ] `--main`, con `tranco-main.dom` de 2026 y `dga.dom` de 2021.
 - [ ] `--secondary` y `--umbrella`, con la exclusión de 4.1.
-- [ ] Escribir la **prueba de paridad de características** en `tests/test_model.py` (`slow`): para 100 filas
+- [x] Escribir la **prueba de paridad de características** en `tests/test_model.py` (`slow`): para 100 filas
       de `main.pkl`, el vector que calcula la función de clasificación de 2.1 para su dominio es idéntico a la
       fila.
 - [ ] `--train full` y `--train tiny`, con los hiperparámetros de 2021 (`detectdga.py:555,567`). Anotar el
