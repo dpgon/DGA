@@ -381,7 +381,7 @@ obtenidos (C8, C7, C3, C4). **El detector sigue funcionando con el modelo de 202
 - [x] `fetchdata.py --set 2026` instala el juego de datos nuevo; hasta la fase 7, con
       `--from release/data-2026`. Por defecto, los ficheros del **modelo** y del diccionario siguen siendo
       los de `2021` hasta la fase 5.
-- [ ] **Verificar:** en un clon nuevo hecho desde el repositorio local, `fetchdata.py` (por defecto, que
+- [x] **Verificar:** en un clon nuevo hecho desde el repositorio local, `fetchdata.py` (por defecto, que
       descarga de `v2021`) y `fetchdata.py --set 2026 --from <ruta>/release/data-2026` instalan y
       verifican todo, y las pruebas de las fases 1–2 pasan.
 
