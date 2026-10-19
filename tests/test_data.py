@@ -1,7 +1,7 @@
 '''
 Checks of the data files listed in ml-data/MANIFEST (C3, C8): the installed files match the manifest, and the
 three Tranco splits of each data set don't share any domain. Files that are not installed are skipped
-(python fetchdata.py, or fetchdata.py --set 2026). They read hundreds of MB: marked slow.
+(python fetchdata.py, or fetchdata.py --set 2021). They read hundreds of MB: marked slow.
 '''
 import os
 

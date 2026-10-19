@@ -50,7 +50,7 @@ def test_check_well_known_domains(nltk_data):
 
 
 def test_check_netlab_reference(nltk_data):
-    # Domains of 12 families confirmed by the 360 Netlab feed (C2). They are in dga.dom, the training data, so
+    # Domains of the 11 families confirmed by the 360 Netlab feed (C2). They are in dga.dom, the training data, so
     # this is a sanity check, not a metric: the 2026 model detects 172 of 188. A threshold, not equality, so that
     # a retrained model can pass
     with open(os.path.join(ROOT, "tests", "data", "referencia_netlab.csv")) as f:

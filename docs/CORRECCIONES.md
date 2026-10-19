@@ -1,8 +1,11 @@
 # DGA: diseño de correcciones (actualización de versiones y datos)
 
-> Diseño acordado con el autor el 2026-10-18. **No hay nada implementado.** Se apoya en `docs/ESTUDIO.md`,
-> `docs/MVP.md` y `docs/ARCHITECTURE.md`. Las comprobaciones de fuentes externas citadas se hicieron ese mismo
-> día.
+> Diseño acordado con el autor el 2026-10-18. Se apoya en `docs/ESTUDIO.md`, `docs/MVP.md` y
+> `docs/ARCHITECTURE.md`. Las comprobaciones de fuentes externas citadas se hicieron ese mismo día.
+>
+> **Estado: implementado** el 2026-10-19, en las fases 0–5 de `TODO.md` (rama `main`, commit `96e4046`, en local;
+> se publica en la fase 7). Las desviaciones respecto a este diseño están en «Implementación y desviaciones», al
+> final del documento. Las referencias de línea de cada corrección son las del código de 2021.
 
 ## Qué se va a corregir
 
@@ -474,6 +477,53 @@ Ver «Lo que no se arregla ahora».
 | `docs/ESTUDIO.md` | No se toca: es la foto de 2021. Si acaso, una nota al principio que remita a este documento |
 
 ---
+
+## Implementación y desviaciones
+
+Las trece correcciones están implementadas, con sus pruebas escritas antes que el código. Dónde quedó cada una:
+
+| Fase de `TODO.md` | Correcciones | Pruebas |
+|---|---|---|
+| 2 | C6, C9, C11, C12, C13 | `tests/test_cli.py`, `tests/test_offline.py`, `tests/test_check.py`, `tests/test_lookdga.py` |
+| 3 | C3, C4, C7 (preparación), C8 | `tests/test_fetchdata.py`, `tests/test_data.py`, `tests/test_sldtld.py`, `tests/test_statsdga.py` |
+| 4 | C5, C3 (Umbrella) | `tests/test_datasets.py` |
+| 5 | C1, C2, C7 (activación), C10 | `tests/test_model.py`, `tests/test_ngram.py`, `tests/test_check.py`; toda la batería en Python 3.12 y 3.13 |
+
+La fase 0 creó la etiqueta `v2021` y su release (D7), y la fase 1, las pruebas de caracterización.
+
+**Desviaciones respecto al diseño:**
+
+- **D3, sin DGArchive.** El autor decidió no pedir acceso (2026-10-19), y los dominios de Hugging Face son de
+  2016 o no tienen fecha: no hay datos DGA reales posteriores a 2021. Las métricas lo dicen.
+- **C2, alcance mayor que el previsto:**
+  - el extractor de características quedó en una sola función, `domainfeatures()`, y no solo mitigado con la
+    prueba de paridad (estaba en «Lo que no se arregla ahora»);
+  - el `eval` de `ngram.py` desapareció al pasar el diccionario a CSV, como se esperaba;
+  - además del diccionario y de la lista de sufijos, la carga comprueba los SHA‑256 del modelo y del escalador;
+  - `--main` deja un `ml-data/main.json` con lo que entró en el conjunto, y `--test_*` añade sus métricas a los
+    metadatos del modelo;
+  - las columnas del CSV de n-gramas son `ngram,value`, en inglés como el código;
+  - el conjunto de referencia de la prueba son los 188 dominios de `tests/data/referencia_netlab.csv` (11
+    familias), que están en el entrenamiento: sirve de comprobación de cordura, no de métrica.
+- **C2, `TRUSTED`.** skops acepta por defecto los estimadores de scikit-learn; la lista explícita solo tiene
+  `sklearn.tree._tree.Tree`, que skops no acepta sin más porque un fichero alterado podría leer fuera de
+  memoria al predecir.
+- **C3, lista Umbrella histórica.** Se usa la del 2026-10-17, porque las listas diarias de Umbrella se publican
+  como históricas con unos dos días de retraso y la URL estable de la del día no sirve para reconstruirla.
+- **C5, conjunto Umbrella pequeño.** Con el entrenamiento de 2026 (casi toda la lista Tranco `467YX`), la
+  exclusión deja 29.681 dominios de Umbrella de 275.443, sobre todo nombres de infraestructura. Por eso su tasa
+  de falsos positivos sube al 36,8 %, aunque el modelo no empeora (`docs/MVP.md`, «Métricas del detector»).
+- **C7, dónde queda la lista de 2021.** `DGAs/wordlist/effective_tld_names.dat` pasa a ser la lista de 2026, y
+  la de 2021 entra en el manifiesto como `ml-data/effective_tld_names-2021.dat` (juego 2021), descargada de
+  la etiqueta `v2021`.
+- **C8, juegos y nombres.**
+  - El manifiesto tiene dos juegos, `2021` y `2026`; el `2026` es el de por defecto desde la fase 5.
+  - Los ficheros de 2026 cuyo nombre coincide con uno de 2021 van en `ml-data/2026/`.
+  - Las releases nuevas se llaman `data-2026` y `model-2026`, en inglés; solo `data-2026` lleva datos de
+    terceros, y solo los que tienen licencia clara. Tranco y Umbrella se descargan de su origen.
+  - `detectdga.py --ngram`, `--main`, `--secondary` y `--umbrella` aceptan `--set`.
+- **CI.** Se comprobó en local: Linux con `act --bind` (las releases nuevas aún no están publicadas) y macOS
+  Apple Silicon. Windows queda sin verificar hasta la fase 7.
 
 ## Anexo: resultados del sondeo de compatibilidad (2026-10-18)
 

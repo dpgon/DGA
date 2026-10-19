@@ -39,8 +39,13 @@ detectdga.py  features + RandomForest + --check ──────────�
 ngram.py      diccionario de n-gramas (lo usan detectdga y statsdga)
 nlpdata.py    comprueba que está el corpus brown de NLTK, sin descargarlo
 fetchdata.py  descarga y verifica los datos de ml-data/MANIFEST (solo biblioteca estándar)
-DGAs/wordlist/  diccionarios de generadores, lista de sufijos públicos (2026); top-1m de Alexa se descarga
-ml-data/        MANIFEST en git; listas *.dom, tranco.ng1-4.csv y full/tiny .skops/.json se descargan
+DGAs/wordlist/  diccionarios de generadores y lista de sufijos públicos (2026); top-1m de Alexa, solo juego 2021
+ml-data/        MANIFEST en git; listas, tranco.ng1-4.csv y full/tiny .skops/.json los instala fetchdata.py
+                (juego 2026 en ml-data/ y ml-data/2026/; juego 2021 con los nombres de entonces)
+tests/          pytest; conftest.py fija TZ=UTC; data/ con la instantánea de generadores y la referencia Netlab
+.github/        workflows/tests.yml: matriz Ubuntu, macOS y Windows × Python 3.12 y 3.13
+release/        borradores locales de las releases data-2026 y model-2026 (ignorado; se publican en la fase 7)
+requirements*.txt  directas con versión mínima, lock exacto (requirements-lock.txt) y pytest (-dev)
 yara/           35 reglas de Malpedia, hoy sin uso en el código
 docs/           documentación de la puesta a punto (en español)
 ```
@@ -127,7 +132,8 @@ Respeta el estilo existente aunque no sea el ideal. Las mejoras de estilo van en
 
 ## Git
 
-- Historial: dos commits en `main` (agosto de 2021), sin ramas, etiquetas ni pull requests.
+- Historial: dos commits de agosto de 2021, la etiqueta `v2021` (con su release) y, desde octubre de 2026, una
+  rama por fase de `TODO.md` unida a `main` con `git merge --no-ff`. Sin pull requests.
 - Mensajes cortos en inglés, en tercera persona del presente y con mayúscula inicial
   (`Updates readme, requirements and gitignore (.idea)`). Sigue ese formato.
 - No hagas commit ni push sin que lo pida el usuario. Si se trabaja en algo grande, usa una rama.
@@ -176,15 +182,15 @@ Respeta el estilo existente aunque no sea el ideal. Las mejoras de estilo van en
    *Por qué:* `alexa.dom` comparte el 62 % con `tranco-main.dom`, y por eso las métricas actuales no valen.
    La honestidad de los resultados es un principio de `docs/IDEA.md`.
 9. **El programa nunca contacta con los dominios analizados.** No reactives `existdomain()`/`checkdomains()`
-   (`detectdga.py:69-106`) sin que el usuario resuelva el punto 1.1.10 de `docs/FUTURE.md`.
+   (código muerto de `detectdga.py`) sin que el usuario resuelva el punto 1.1.10 de `docs/FUTURE.md`.
    *Por qué:* es un no objetivo, y consultar el DNS de un dominio DGA filtra hacia fuera qué se está
    investigando.
 10. **Nunca ejecutes muestras de malware.** Cualquier análisis de ficheros (etapa 1.3, YARA) es estático.
     *Por qué:* es un no objetivo y un requisito de seguridad del producto.
 11. **No añadas dependencias de red en tiempo de ejecución.** Después de instalar, todo debe funcionar sin
     conexión.
-    *Por qué:* es un requisito de `docs/IDEA.md` (máquinas de análisis aisladas). La descarga de NLTK al
-    importar es deuda conocida, no un modelo a seguir.
+    *Por qué:* es un requisito de `docs/IDEA.md` (máquinas de análisis aisladas). Hasta 2026, NLTK descargaba
+    su corpus al importar (C11); la red solo se usa en `fetchdata.py`, al instalar.
 12. **Mantén `lookdga.py`, `dga.py` y `DGAs/` libres de dependencias externas.**
     *Por qué:* solo usan la biblioteca estándar y funcionan con cualquier Python 3 sin instalar nada.
 13. **No lances `--ngram`, `--main`, `--secondary`, `--umbrella` ni `--train` sin avisar.** Sobrescriben
@@ -193,15 +199,19 @@ Respeta el estilo existente aunque no sea el ideal. Las mejoras de estilo van en
     (si no coinciden con el manifiesto, lo dice).
     *Por qué:* `full.skops` y `tranco.ng*.csv` son el modelo publicado. Hay copia en la release `model-2026`,
     pero un modelo regenerado ya no coincide con el manifiesto y `fetchdata.py` deja de dar por bueno ese
-    fichero.
+    fichero. Un modelo nuevo que se quiera publicar es una release nueva (`model-AAAA`) con sus notas y
+    entradas nuevas en el manifiesto, tras medir sus métricas como en `docs/MVP.md`.
 14. **`lookdga.py -C` escribe datos en la salida estándar.** No añadas nada más a esa salida.
     *Por qué:* el README la redirige a `ml-data/mydgas.dom`. Las líneas de estado van a la salida de error
     desde C13; no las devuelvas a la estándar.
-15. **No edites `ml-data/*.dom` ni `DGAs/wordlist/*` a mano.** Los datos se cambian a través de
+15. **No edites `ml-data/*` ni `DGAs/wordlist/*` a mano.** Los datos se cambian a través de
     `ml-data/MANIFEST`: fichero nuevo con su URL, tamaño, SHA‑256, fuente (de dónde sale y cómo se obtuvo),
-    licencia y juego. No cambies el hash de un fichero que ya está publicado: añade otro.
-    *Por qué:* son datos de terceros (Tranco, 360 Netlab, Alexa, Mozilla) y el estudio depende de poder
-    reconstruirlos.
+    licencia y juego. No cambies el hash de un fichero que ya está publicado: añade otro. Solo se
+    redistribuye en una release lo que tiene licencia clara; lo demás se descarga de su origen (URL, `URL#miembro`
+    de un zip o `lines:` derivado de otro fichero).
+    *Por qué:* son datos de terceros (Tranco, Cisco Umbrella, Hugging Face, 360 Netlab, Alexa, Mozilla) y el
+    estudio depende de poder reconstruirlos. `tests/test_data.py` comprueba los ficheros instalados contra el
+    manifiesto.
 16. **No toques `.idea/`.**
     *Por qué:* es configuración personal de PyCharm que quedó versionada por accidente
     (`docs/ARCHITECTURE.md` §11). Qué hacer con ella lo decide el usuario.
