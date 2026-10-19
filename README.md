@@ -150,17 +150,27 @@ Now, we can create the main dataset:
 
 To create the secondary dataset or the alexa dataset use --secondary or --alexa options.
 
-> **Known issue (2026):** 62% of `ml-data/alexa.dom` (310,412 of 500,000 domains) is also in the training set, so
-> `--test_alexa` overstates accuracy.
+> **Changes (2026):**
+> - `--alexa` and `--test_alexa` are deprecated aliases of `--umbrella` and `--test_umbrella`: the Alexa set
+>   shared 62% of its domains with the training set. The Umbrella set uses the Cisco Umbrella list of the 2026
+>   data set, reduced to registrable domains.
+> - `--secondary --set 2026` builds the secondary set from the 2026 data set, adding the Hugging Face DGA
+>   domains. Without `--set`, it uses the 2021 files.
+> - Evaluation sets leave out every domain and SLD of the training data, print what they excluded (also saved
+>   in `ml-data/<set>.json`) and report the results by origin.
+> - The metrics of the 2021 model on these sets are in [`docs/MVP.md`](docs/MVP.md) («Métricas del modelo de
+>   2021, medidas en 2026»): with the full model, 1.9% false positives on Tranco, 10.8% on Umbrella, and 78.8%
+>   of the DGA domains detected.
 >
-> These commands overwrite files in `ml-data/` and are slow (not measured, probably hours). Back up
-> `ml-data/` first.
+> These commands overwrite files in `ml-data/` and are slow: `--secondary --set 2026` took 34 minutes and
+> `--umbrella` 2 minutes (Apple Silicon, Rosetta). `--main` and `--ngram` were not measured. Back up the files
+> you want to keep first.
 
 The repository has the full model (downloaded by `fetchdata.py`), but it's possible to train it or train a different model (ngram, nosyll...): 
 
 `$ python detectdga.py --train ngram`
 
-To check it with secondary model, use (alexa with --test_alexa):
+To check it with secondary model, use (umbrella with --test_umbrella):
 
 `$ python detectdga.py --test_secondary ngram`
 

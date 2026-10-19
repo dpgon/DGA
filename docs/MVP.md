@@ -190,6 +190,74 @@ Menú interactivo que se ejecuta con `python statsdga.py`.
 
 ---
 
+## Métricas del modelo de 2021, medidas en 2026
+
+Primera medición publicada del detector. Se hizo el 2026-10-19 en el entorno de 2021 (Python 3.9 x86_64,
+`requirements.txt`), con el modelo `full.pkl` (SHA‑256 `922073c5…`) y `tiny.pkl` de `v2021`, el diccionario de
+n-gramas de 2021 y la lista de sufijos de 2021, que son los recursos con los que se entrenó.
+
+**Conjuntos de evaluación** (TODO.md, fase 4). Ninguno comparte dominio ni SLD con los datos de los que salió
+el modelo (`tranco-main.dom`, `tranco-ngram.dom` y `dga.dom` de 2021). Lo comprueban `tests/test_datasets.py`
+y el recuento guardado en `ml-data/<conjunto>.json`.
+
+| Conjunto | Origen | Datos | Leídos | Excluidos (en el entrenamiento) | No evaluables | Evaluados |
+|---|---|---|---:|---:|---:|---:|
+| Secundario (`--secondary --set 2026`) | `tranco` (legítimos) | Tranco `467YX`, líneas 1.500.001–2.000.000 | 500.000 | 158.961 | 9.920 | 331.119 |
+| | `own` (DGA) | `lookdga.py -d 2026-10-18 -n 3000 -C`, en UTC | 150.000 | 23.397 | 19.488 | 107.115 |
+| | `hf` (DGA) | Hugging Face `harpomaxx/dga-detection`, revisión `26ab213` | 1.915.335 | 630.464 | 7.796 | 1.277.075 |
+| Umbrella (`--umbrella`) | `umbrella` (legítimos) | Cisco Umbrella top 1M del 2026-10-17, reducido a 267.029 dominios registrables únicos | 267.029 | 135.029 | 12.223 | 119.840 |
+
+«No evaluables» son los dominios que el detector descarta: SLD de 3 caracteres o menos, subdominio o sufijo
+desconocido para la lista de 2021.
+
+**Resultados:**
+
+| Conjunto | Modelo | Exactitud | Falsos positivos en legítimos | DGA detectados (exhaustividad) | Precisión DGA |
+|---|---|---:|---:|---:|---:|
+| Secundario | `full` | 0,825 | 1,9 % (6.287 de 331.119) | 78,8 % (1.090.267 de 1.384.190) | 0,994 |
+| Secundario | `tiny` | 0,623 | 6,1 % (20.077 de 331.119) | 54,7 % (757.668 de 1.384.190) | 0,974 |
+| Umbrella | `full` | 0,892 | 10,8 % (12.963 de 119.840) | — | — |
+| Umbrella | `tiny` | 0,896 | 10,4 % (12.479 de 119.840) | — | — |
+
+Matrices de confusión (filas: real legítimo / DGA; columnas: predicho legítimo / DGA):
+
+- secundario `full`: `[[324832, 6287], [293923, 1090267]]`;
+- secundario `tiny`: `[[311042, 20077], [626522, 757668]]`;
+- Umbrella `full`: `[[106877, 12963], [0, 0]]`;
+- Umbrella `tiny`: `[[107361, 12479], [0, 0]]`.
+
+Por origen, con `full` (con `tiny`): `tranco` acierta el 98,1 % (93,9 %), `own` el 72,8 % (48,0 %) y `hf` el
+79,3 % (55,3 %).
+
+**Por familia** (cálculo aparte con `full`, fuera de `detectdga.py`). Las familias que generan dominios a partir de
+palabras casi no se detectan:
+- generadores propios: `pizd` 0 %, `nymaim2` 0 %, `suppobox` 0,1 %, `qsnatcha` 0,1 %, `gozi` 1,8 %, `vawtrak3`
+  5,8 %;
+- Hugging Face: `volatile` 0 %, `suppobox` 0 %, `matsnu` 0,9 %, `pushdo` 13,4 %.
+
+Las familias aritméticas, como `newgoz` o `zeus`, se detectan al 100 %.
+
+**Cómo leerlo:**
+- **La precisión DGA depende de la proporción del conjunto.** En el secundario hay 4 dominios DGA por cada
+  legítimo. Para el uso real pesan más las tasas de falsos positivos en legítimos y de DGA detectados.
+- **En Umbrella hay más de 5 veces más falsos positivos que en Tranco.** Umbrella mide consultas DNS, no
+  visitas web, e incluye nombres de infraestructura (CDN, telemetría, servicios en la nube) que parecen
+  aleatorios. Es el dato más cercano al tráfico de una red.
+- **No hay dominios DGA reales posteriores a 2021.**
+  - Los de Hugging Face son de 2016 o no tienen fecha.
+  - Los propios salen de generadores reimplementados, de los que 39 de 50 no tienen confirmación externa.
+  - El autor decidió no pedir acceso a DGArchive (2026-10-19).
+  
+  Estas cifras miden, por tanto, la generalización a dominios no vistos, no el envejecimiento del modelo
+  ante familias nuevas.
+- **La exclusión es estricta:** se quita cualquier dominio cuyo SLD aparezca en el entrenamiento, aunque
+  tenga otro sufijo. Es la opción conservadora, porque 23 de las 24 características solo dependen del SLD.
+- Las cifras de Alexa (`--test_alexa`) que se podían obtener antes no sirven: el 62 % de sus dominios estaba
+  en el entrenamiento.
+
+**Tiempos** (Apple Silicon bajo Rosetta): `--secondary --set 2026`, 34 min (2.565.335 dominios leídos);
+`--umbrella`, 2 min; cada evaluación, entre 1 y 7 s.
+
 ## Implementado, no verificado
 
 Estas funciones tienen código completo y se invocan desde la línea de órdenes, pero **no se han ejecutado en

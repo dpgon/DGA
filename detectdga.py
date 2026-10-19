@@ -3,12 +3,14 @@ import numpy as np
 import pandas as pd
 import dga
 import pickle
+import json
 from datetime import datetime, timedelta
 from nltk.tokenize import LegalitySyllableTokenizer
 from nltk.corpus import brown
 from dns import resolver
 from ngram import ngrams
 from nlpdata import requirebrown
+from fetchdata import sha256
 from binascii import crc32
 from os.path import isfile
 from sys import exit, stderr
@@ -19,6 +21,8 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 
 
 etlds = []
+# Same suffixes as etlds, for fast lookups over millions of domains
+etldset = set()
 etldsfile = None
 
 # Data files shared by several functions, defined once so the checks and the reads cannot diverge (C6)
@@ -28,6 +32,21 @@ TRANCO_TEST2 = "ml-data/tranco-test2.dom"
 # used with a retrained model (C7)
 ETLDS = "DGAs/wordlist/effective_tld_names.dat"
 FETCH = "Download them with: python fetchdata.py"
+# Files the 2021 model was built from: no evaluation set may share a domain or an SLD with them (C5)
+TRAINING = ["ml-data/tranco-main.dom", "ml-data/tranco-ngram.dom", "ml-data/dga.dom"]
+# Input files of the secondary evaluation set, by data set
+SECONDARY = {
+    "2021": {"tranco": TRANCO_TEST2, "own": "ml-data/mydgas.dom"},
+    "2026": {"tranco": "ml-data/2026/tranco-test2.dom", "own": "ml-data/2026/mydgas.dom", "hf": "ml-data/hf-dga.dom"},
+}
+UMBRELLA = "ml-data/umbrella-raw.csv"
+# Columns of every data set: 4 info columns and the 24 features of domainfeatures()
+COLUMNS = ['sld', 'tld', 'family', 'dga', 'len', 'crctld',
+           'vowels', 'consonants', 'numbers', 'doubled',
+           'repeated', 'sylnumber', 'sylmin', 'sylmax',
+           'mean1', 'median1', 'stddev1', 'mean2', 'median2', 'stddev2',
+           'mean3', 'median3', 'stddev3', 'mean4', 'median4', 'stddev4',
+           'entropy', 'gini']
 
 
 def requirefiles(files, hint=FETCH):
@@ -92,6 +111,8 @@ def loadetlds(filename=ETLDS):
             if line and '//' not in line:
                 if line not in etlds:
                     etlds.append(line)
+        etldset.clear()
+        etldset.update(etlds)
 
 
 def existdomain(domain, short=True):
@@ -162,9 +183,9 @@ def sldtldreason(domain):
         domain = ".".join(domain.split('.')[1:])
         sld = domain.split('.')[0]
     tld = ".".join(domain.split('.')[1:])
-    if not tld or tld not in etlds:
+    if not tld or tld not in etldset:
         labels = tld.split('.')
-        if any(".".join(labels[c:]) in etlds for c in range(1, len(labels))):
+        if any(".".join(labels[c:]) in etldset for c in range(1, len(labels))):
             return None, None, "subdomain or www. prefix (only registrable domains are evaluated)"
         return None, None, "unknown suffix"
     elif len(sld) <= 3:
@@ -394,177 +415,162 @@ def createmaindataset():
     df.to_pickle('ml-data/main.pkl')
 
 
-def createtestdataset():
+def trainingdata(files=TRAINING):
+    '''
+    Load the registrable domains and SLDs the 2021 model was built from, in lowercase, so that no evaluation set
+    shares a domain or an SLD with them (C5)
+    :param files: domain lists (one domain per line, or family and domain as in dga.dom)
+    :return: set of domains (sld.tld) and set of SLDs
+    '''
+    domains, slds = set(), set()
+    for filename in files:
+        with open(filename) as f:
+            for line in f:
+                line = line.strip()
+                if '#' in line or not line:
+                    continue
+                items = line.split()
+                sld, tld = sldtld((items[1] if len(items) > 1 else items[0]).lower())
+                if sld:
+                    domains.add(f"{sld}.{tld}")
+                    slds.add(sld)
+    return domains, slds
+
+
+def datasetrows(items, exclude, ng, LP, counts):
+    '''
+    Calculate the rows of an evaluation set, leaving out the domains and SLDs of the training data
+    :param items: iterable of (domain, family, dga); the origin is the part of family before ":"
+    :param exclude: (domains, slds) returned by trainingdata()
+    :param ng: ngram object
+    :param LP: syllable tokenizer
+    :param counts: dict updated with read, invalid, excluded and kept domains per origin
+    :return: list of rows with the 28 columns of COLUMNS
+    '''
+    domains = []
+    for status, (domain, family, dga) in enumerate(items):
+        if status % 100000 == 0:
+            print("=", end="", flush=True)
+        origin = counts.setdefault(family.split(':')[0], {"read": 0, "invalid": 0, "excluded": 0, "kept": 0})
+        origin["read"] += 1
+        domain = domain.lower()
+        sld, tld = sldtld(domain)
+        if not sld:
+            origin["invalid"] += 1
+        elif f"{sld}.{tld}" in exclude[0] or sld in exclude[1]:
+            origin["excluded"] += 1
+        else:
+            origin["kept"] += 1
+            domains.append([sld, tld, family, dga] + domainfeatures(domain, sld, tld, ng, LP))
+    print()
+    return domains
+
+
+def savedataset(name, domains, counts, dataset, files):
+    '''
+    Save an evaluation set in ml-data/<name>.pkl and what it is made of in ml-data/<name>.json
+    '''
+    pd.DataFrame(domains, columns=COLUMNS).to_pickle(f'ml-data/{name}.pkl')
+    report = {"set": dataset, "created": datetime.now().isoformat(timespec="seconds"),
+              "files": {f: sha256(f) for f in files}, "training": {f: sha256(f) for f in TRAINING},
+              "origins": counts}
+    with open(f'ml-data/{name}.json', 'w') as f:
+        json.dump(report, f, indent=2)
+    print(f"Saved ml-data/{name}.pkl with {len(domains)} domains:")
+    for origin, c in counts.items():
+        print(f"  {origin}: {c['kept']} kept, {c['excluded']} excluded (in the training data), "
+              f"{c['invalid']} not evaluable")
+
+
+def loadresources():
     loadetlds()
     ng = loadngram(NGRAM)
     requirebrown()
-    LP = LegalitySyllableTokenizer(brown.words())
-
-    # Open noDGA domains
-    with open(TRANCO_TEST2) as f:
-        lines = f.readlines()
-
-    domains = []
-    for status, line in enumerate(lines):
-        if status % 100000 == 0:
-            print("=", end="")
-
-        domain = line.strip()
-
-        # Create data from domains
-        sld, tld = sldtld(domain)
-        if sld:
-            # CRC32 TLD
-            crctld = crc32(tld.encode('UTF-8'))
-
-            # N-Grams
-            mean1, median1, stddev1 = ng.getall(domain, 1)
-            mean2, median2, stddev2 = ng.getall(domain, 2)
-            mean3, median3, stddev3 = ng.getall(domain, 3)
-            mean4, median4, stddev4 = ng.getall(domain, 4)
-
-            # Vowels, Consonants and numbers
-            v, c, n = vcn(sld)
-
-            # Syllables
-            syln, sylmin, sylmax = syllables(sld, LP)
-
-            # Entropy
-            data = [ord(letter) for letter in sld]
-            value, counts = np.unique(data, return_counts=True)
-            norm_counts = counts / counts.sum()
-            entropy = -(norm_counts * np.log(norm_counts)/np.log(np.e)).sum()
-
-            # Gini coeficient
-            gc = gini(np.array(data))
-
-            domains.append([sld, tld, 'tranco', 0, len(sld)/63, crctld,
-                            v, c, n, double(sld), repeated(sld), syln, sylmin, sylmax,
-                            mean1, median1, stddev1, mean2, median2, stddev2,
-                            mean3, median3, stddev3, mean4, median4, stddev4,
-                            entropy, gc])
-
-    print("\nCurrent domains: ", len(domains))
-
-    # Open DGA domains
-    with open("ml-data/mydgas.dom") as f:
-        lines = f.readlines()
-
-    for status, line in enumerate(lines):
-        if status % 100000 == 0:
-            print("=", end="")
-
-        line = line.strip()
-        # Status lines starting with "*": lookdga.py -C mixed them with the CSV before C13 (2021 mydgas.dom)
-        if '*' in line or not line:
-            continue
-        items = line.split(',')
-        family = items[1]
-        domain = items[0]
-
-        # Create data from domains
-        sld, tld = sldtld(domain)
-        if sld:
-            # CRC32 TLD
-            crctld = crc32(tld.encode('UTF-8'))
-
-            # N-Grams
-            mean1, median1, stddev1 = ng.getall(domain, 1)
-            mean2, median2, stddev2 = ng.getall(domain, 2)
-            mean3, median3, stddev3 = ng.getall(domain, 3)
-            mean4, median4, stddev4 = ng.getall(domain, 4)
-
-            # Vowels, Consonants and numbers
-            v, c, n = vcn(sld)
-
-            # Syllables
-            syln, sylmin, sylmax = syllables(sld, LP)
-
-            # Entropy
-            data = [ord(letter) for letter in sld]
-            value, counts = np.unique(data, return_counts=True)
-            norm_counts = counts / counts.sum()
-            entropy = -(norm_counts * np.log(norm_counts) / np.log(np.e)).sum()
-
-            # Gini coeficient
-            gc = gini(np.array(data))
-
-            domains.append([sld, tld, family, 1, len(sld) / 63, crctld,
-                            v, c, n, double(sld), repeated(sld), syln, sylmin, sylmax,
-                            mean1, median1, stddev1, mean2, median2, stddev2,
-                            mean3, median3, stddev3, mean4, median4, stddev4,
-                            entropy, gc])
-
-    print("\nTotal domains: ", len(domains))
-
-    df = pd.DataFrame(domains, columns=['sld', 'tld', 'family', 'dga', 'len', 'crctld',
-                                        'vowels', 'consonants', 'numbers', 'doubled',
-                                        'repeated', 'sylnumber', 'sylmin', 'sylmax',
-                                        'mean1', 'median1', 'stddev1', 'mean2', 'median2', 'stddev2',
-                                        'mean3', 'median3', 'stddev3', 'mean4', 'median4', 'stddev4',
-                                        'entropy', 'gini'])
-    df.to_pickle('ml-data/secondary.pkl')
+    return ng, LegalitySyllableTokenizer(brown.words())
 
 
-def createalexadataset():
-    loadetlds()
-    ng = loadngram(NGRAM)
-    requirebrown()
-    LP = LegalitySyllableTokenizer(brown.words())
+def createtestdataset(dataset="2021"):
+    '''
+    Create the secondary evaluation set: benign Tranco domains, the own generators (own:) and, in the 2026 data
+    set, the Hugging Face DGA domains (hf:), without anything of the training data
+    :param dataset: data set of the input files (2021 or 2026)
+    '''
+    files = SECONDARY[dataset]
+    hint = FETCH if dataset == "2021" else "Download them with: python fetchdata.py --set 2026"
+    requirefiles(list(files.values()), hint)
+    requirefiles(TRAINING)
+    ng, LP = loadresources()
+    exclude = trainingdata()
 
-    # Open noDGA domains
-    with open("ml-data/alexa.dom") as f:
-        lines = f.readlines()
+    def items():
+        with open(files["tranco"]) as f:
+            for line in f:
+                if line.strip():
+                    yield line.strip(), 'tranco', 0
+        with open(files["own"]) as f:
+            for line in f:
+                line = line.strip()
+                # Status lines starting with "*": lookdga.py -C mixed them with the CSV before C13 (2021 mydgas.dom)
+                if '*' in line or not line:
+                    continue
+                fields = line.split(',')
+                yield fields[0], f"own:{fields[1]}", 1
+        if "hf" in files:
+            with open(files["hf"]) as f:
+                for line in f:
+                    line = line.strip()
+                    if '#' in line or not line:
+                        continue
+                    fields = line.split()
+                    yield fields[1], f"hf:{fields[0]}", 1
 
-    domains = []
-    for status, line in enumerate(lines):
-        if status % 100000 == 0:
-            print("=", end="")
+    counts = {}
+    domains = datasetrows(items(), exclude, ng, LP, counts)
+    savedataset('secondary', domains, counts, dataset, list(files.values()))
 
-        domain = line.strip()
 
-        # Create data from domains
-        sld, tld = sldtld(domain)
-        if sld:
-            # CRC32 TLD
-            crctld = crc32(tld.encode('UTF-8'))
+def registrable(domain):
+    '''
+    Reduce a domain to its registrable domain with the loaded public suffixes (a.b.example.co.uk -> example.co.uk)
+    :param domain: domain or subdomain
+    :return: registrable domain in lowercase, or None if the domain is a public suffix
+    '''
+    labels = domain.lower().split('.')
+    for c in range(len(labels) - 1):
+        if ".".join(labels[c + 1:]) in etldset:
+            return ".".join(labels[c:])
+    return None
 
-            # N-Grams
-            mean1, median1, stddev1 = ng.getall(domain, 1)
-            mean2, median2, stddev2 = ng.getall(domain, 2)
-            mean3, median3, stddev3 = ng.getall(domain, 3)
-            mean4, median4, stddev4 = ng.getall(domain, 4)
 
-            # Vowels, Consonants and numbers
-            v, c, n = vcn(sld)
+def createumbrelladataset():
+    '''
+    Create the Umbrella evaluation set (C3): the Umbrella top 1M reduced to unique registrable domains, without
+    anything of the training data. It replaces the Alexa set, which shared 62% of its domains with the training data
+    '''
+    requirefiles([UMBRELLA], "Download it with: python fetchdata.py --set 2026")
+    requirefiles(TRAINING)
+    ng, LP = loadresources()
+    exclude = trainingdata()
+    counts = {"umbrella": {"read": 0, "invalid": 0, "excluded": 0, "kept": 0, "subdomains": 0}}
 
-            # Syllables
-            syln, sylmin, sylmax = syllables(sld, LP)
+    def items():
+        seen = set()
+        with open(UMBRELLA) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                domain = registrable(line.split(',')[-1])
+                if not domain:
+                    counts["umbrella"]["invalid"] += 1
+                elif domain in seen:
+                    counts["umbrella"]["subdomains"] += 1
+                else:
+                    seen.add(domain)
+                    yield domain, 'umbrella', 0
 
-            # Entropy
-            data = [ord(letter) for letter in sld]
-            value, counts = np.unique(data, return_counts=True)
-            norm_counts = counts / counts.sum()
-            entropy = -(norm_counts * np.log(norm_counts)/np.log(np.e)).sum()
-
-            # Gini coeficient
-            gc = gini(np.array(data))
-
-            domains.append([sld, tld, 'alexa', 0, len(sld)/63, crctld,
-                            v, c, n, double(sld), repeated(sld), syln, sylmin, sylmax,
-                            mean1, median1, stddev1, mean2, median2, stddev2,
-                            mean3, median3, stddev3, mean4, median4, stddev4,
-                            entropy, gc])
-
-    print("\nTotal domains: ", len(domains))
-
-    df = pd.DataFrame(domains, columns=['sld', 'tld', 'family', 'dga', 'len', 'crctld',
-                                        'vowels', 'consonants', 'numbers', 'doubled',
-                                        'repeated', 'sylnumber', 'sylmin', 'sylmax',
-                                        'mean1', 'median1', 'stddev1', 'mean2', 'median2', 'stddev2',
-                                        'mean3', 'median3', 'stddev3', 'mean4', 'median4', 'stddev4',
-                                        'entropy', 'gini'])
-    df.to_pickle('ml-data/alexa.pkl')
+    domains = datasetrows(items(), exclude, ng, LP, counts)
+    savedataset('umbrella', domains, counts, "2026", [UMBRELLA])
 
 
 def traindata(dataset="full"):
@@ -632,14 +638,30 @@ def traindata(dataset="full"):
     print(f"Accuracy Score: {accuracy_score(y_test, y_pred)}")
 
 
-def testsecdata(dataset="full", alexa=False):
+def testsecdata(dataset="full", name="secondary"):
+    '''
+    Evaluate a model with an evaluation set
+    :param dataset: model (full, tiny...)
+    :param name: evaluation set, ml-data/<name>.pkl (secondary or umbrella)
+    '''
     requirefiles(modelfiles(dataset), f"{FETCH} (full and tiny), or create the model with --train {dataset}.")
-    option = "--alexa" if alexa else "--secondary"
-    requirefiles([f"ml-data/{option[2:]}.pkl"], f"Create it with {option} (its input files come from python fetchdata.py).")
-    if alexa:
-        df = pd.read_pickle('ml-data/alexa.pkl')
-    else:
-        df = pd.read_pickle('ml-data/secondary.pkl')
+    requirefiles([f"ml-data/{name}.pkl"], f"Create it with --{name} (its input files come from python fetchdata.py).")
+    df = pd.read_pickle(f'ml-data/{name}.pkl')
+    sc = pickle.load(open(f'ml-data/{dataset}-scaler.pkl', 'rb'))
+    model = pickle.load(open(f'ml-data/{dataset}.pkl', 'rb'))
+    evaluate(df, dataset, model, sc)
+
+
+def evaluate(df, dataset, model, sc):
+    '''
+    Print the metrics of a model on an evaluation set, in total and by origin (the part of family before ":")
+    :param df: DataFrame with the columns of COLUMNS
+    :param dataset: model (full, tiny...), to drop the columns it doesn't use
+    :param model: trained model with a predict() method
+    :param sc: scaler with a transform() method
+    '''
+    origins = df['family'].str.split(':').str[0].values
+    df = df.copy()
 
     # We don't need info strings
     df.drop('sld', inplace=True, axis=1)
@@ -673,24 +695,20 @@ def testsecdata(dataset="full", alexa=False):
     X = df.iloc[:, 1:].values
     y = df.iloc[:, 0].values
 
-    # Load scaler
-    sc = pickle.load(open(f'ml-data/{dataset}-scaler.pkl', 'rb'))
-
-    # Scale data
-    X_test = sc.transform(X)
-
-    # Load model
-    model = pickle.load(open(f'ml-data/{dataset}.pkl', 'rb'))
-
-    # Predict
-    y_pred = model.predict(X_test)
+    # Scale data and predict
+    y_pred = model.predict(sc.transform(X))
 
     # Show results
     print(f"Confussion matrix:")
-    print(confusion_matrix(y, y_pred))
+    print(confusion_matrix(y, y_pred, labels=[0, 1]))
     print(f"Classification report:")
-    print(classification_report(y, y_pred))
+    print(classification_report(y, y_pred, labels=[0, 1], zero_division=0))
     print(f"Accuracy Score: {accuracy_score(y, y_pred)}")
+    print(f"By origin:")
+    for origin in dict.fromkeys(origins):
+        mask = origins == origin
+        print(f"  {origin}: {mask.sum()} domains, {int((y_pred[mask] == 1).sum())} detected as DGA, "
+              f"accuracy {accuracy_score(y[mask], y_pred[mask]):.3f}")
 
 
 def domainfeatures(domain, sld, tld, ng, LP):
@@ -845,22 +863,37 @@ def main():
                                 help="create the main dataset and save it in ml-data/main.pkl", action="store_true")
     parser.add_argument("--secondary",
                                 help="create the secondary dataset and save it in ml-data/secondary.pkl", action="store_true")
+    parser.add_argument("--umbrella",
+                                help="create the Umbrella dataset and save it in ml-data/umbrella.pkl", action="store_true")
     parser.add_argument("--alexa",
-                                help="create the alexa dataset and save it in ml-data/alexa.pkl", action="store_true")
+                                help="deprecated alias of --umbrella", action="store_true")
+    parser.add_argument("--set", choices=['2021', '2026'], default='2021',
+                                help="data set of the input files of --secondary (default 2021)")
     parser.add_argument("--train", type=str,
                                 help="Train the Check the given domains (full|ngram|nongram|nosyll|nongramnosyll|tiny)",
                                 choices=['full', 'ngram', 'nongram', 'nosyll', 'nongramnosyll', 'tiny'])
     parser.add_argument("--test_secondary", type=str,
                                 help="test the secondary dataset of ml-data/secondary.pkl (full|ngram|nongram|nosyll|nongramnosyll|tiny)",
                                 choices=['full', 'ngram', 'nongram', 'nosyll', 'nongramnosyll', 'tiny'])
+    parser.add_argument("--test_umbrella", type=str,
+                                help="test the Umbrella dataset of ml-data/umbrella.pkl (full|ngram|nongram|nosyll|nongramnosyll|tiny)",
+                                choices=['full', 'ngram', 'nongram', 'nosyll', 'nongramnosyll', 'tiny'])
     parser.add_argument("--test_alexa", type=str,
-                                help="test the alexa dataset of ml-data/alexa.pkl (full|ngram|nongram|nosyll|nongramnosyll|tiny)",
+                                help="deprecated alias of --test_umbrella",
                                 choices=['full', 'ngram', 'nongram', 'nosyll', 'nongramnosyll', 'tiny'])
     parser.add_argument("--check", nargs="+", type=str,
                                 help="Check the given domains")
     parser.add_argument("-b", "--bruteforce",
                         help="if check is selected, test DGA detected domains by bruteforce", action="store_true")
     args = parser.parse_args()
+
+    # The Alexa ranking was retired in 2022 and alexa.dom shared 62% of its domains with the training data (C3)
+    if args.alexa:
+        print("--alexa is deprecated: it now runs --umbrella", file=stderr)
+        args.umbrella = True
+    if args.test_alexa:
+        print("--test_alexa is deprecated: it now runs --test_umbrella", file=stderr)
+        args.test_umbrella = args.test_alexa
 
     if args.main:
         # Create the main dataset and save it in ml-data/main.pkl
@@ -872,15 +905,13 @@ def main():
     elif args.secondary:
         # Create the secondary test dataset
         if checktranco():
-            requirefiles([TRANCO_TEST2, "ml-data/mydgas.dom"])
-            createtestdataset()
+            createtestdataset(dataset=args.set)
         else:
             tranconotfound()
-    elif args.alexa:
-        # Create the Alexa test dataset
+    elif args.umbrella:
+        # Create the Umbrella test dataset
         if checktranco():
-            requirefiles(["ml-data/alexa.dom"])
-            createalexadataset()
+            createumbrelladataset()
         else:
             tranconotfound()
     elif args.ngram:
@@ -892,10 +923,9 @@ def main():
         traindata(dataset=args.train)
     elif args.test_secondary:
         # Train our model
-        testsecdata(dataset=args.test_secondary, alexa=False)
-    elif args.test_alexa:
-        # Train our model
-        testsecdata(dataset=args.test_alexa, alexa=True)
+        testsecdata(dataset=args.test_secondary, name="secondary")
+    elif args.test_umbrella:
+        testsecdata(dataset=args.test_umbrella, name="umbrella")
     elif args.check:
         testdomains(args.check, brute=args.bruteforce)
     else:
