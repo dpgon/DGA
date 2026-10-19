@@ -277,30 +277,30 @@ obtenidos (C8, C7, C3, C4). **El detector sigue funcionando con el modelo de 202
 - [x] `.gitignore`: añadir `ml-data/*` y `!ml-data/MANIFEST`.
 - [x] Retirar del índice los ficheros de `ml-data/` salvo el manifiesto: `git rm --cached ml-data/*.pkl
       ml-data/*.dom ml-data/tranco.ng*`. Siguen en `v2021`.
-- [ ] Actualizar la CI (1.7): `python fetchdata.py` con caché de `ml-data/` indexada por el hash de
+- [x] Actualizar la CI (1.7): `python fetchdata.py` con caché de `ml-data/` indexada por el hash de
       `ml-data/MANIFEST`. Probarlo con `act`; la caché real de GitHub solo se comprueba en la fase 7.
-- [ ] **Verificar:** en un clon nuevo hecho desde el repositorio local, en un directorio temporal, que descarga
+- [x] **Verificar:** en un clon nuevo hecho desde el repositorio local, en un directorio temporal, que descarga
       los assets de `v2021` (ya publicados), `python fetchdata.py --nltk` seguido de
       `pytest -m "model or not model"` pasa, y `--check` con los cinco dominios del README da los mismos
       veredictos.
-- [ ] Actualizar `README.md` («Install»): el paso `python fetchdata.py --nltk` tras instalar las dependencias,
+- [x] Actualizar `README.md` («Install»): el paso `python fetchdata.py --nltk` tras instalar las dependencias,
       y que clonar ya no basta.
-- [ ] Actualizar `CLAUDE.md`:
+- [x] Actualizar `CLAUDE.md`:
   - regla 13: los ficheros de `ml-data/` se descargan; antes de regenerarlos, comprobar el juego con el
     manifiesto;
   - regla 15: los datos se cambian a través del manifiesto, no a mano;
   - mapa de directorios.
 
 ### 3.2 Lista de sufijos nueva, preparada y sin activar (C7)
-- [ ] Hacer configurable la ruta de `loadetlds()` (`detectdga.py:28-66`), con la ruta actual por defecto,
+- [x] Hacer configurable la ruta de `loadetlds()` (`detectdga.py:28-66`), con la ruta actual por defecto,
       para poder probar con otras listas.
-- [ ] Escribir `tests/test_sldtld.py`, parametrizado por lista:
+- [x] Escribir `tests/test_sldtld.py`, parametrizado por lista:
   - sufijos de varios niveles (`example.co.uk`);
   - sufijos privados (`uquslaigwaannie.ddns.net`);
   - SLD de 3 caracteres (`bbc.com` → descartado);
   - un sufijo presente solo en la lista nueva: aceptado con la nueva y rechazado con la de 2021.
-- [ ] Descargar `https://publicsuffix.org/list/public_suffix_list.dat` y anotar fecha y SHA‑256.
-- [ ] Añadirla al juego `2026` del manifiesto como `ml-data/public_suffix_list.dat`. **No sustituir todavía**
+- [x] Descargar `https://publicsuffix.org/list/public_suffix_list.dat` y anotar fecha y SHA‑256.
+- [x] Añadirla al juego `2026` del manifiesto como `ml-data/public_suffix_list.dat`. **No sustituir todavía**
       `DGAs/wordlist/effective_tld_names.dat`: el modelo de 2021 necesita la lista de 2021 (ver 5.3).
 
 ### 3.3 Dominios legítimos actuales (C3)

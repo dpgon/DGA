@@ -28,7 +28,7 @@ checked, is listed in [`docs/MVP.md`](docs/MVP.md). In short:
   [`docs/FUTURE.md`](docs/FUTURE.md).
 
 ## Install
-Just clone the repository and install the dependencies with pip. It is preferable to use of a virtual environment of python3.7 or above:
+Clone the repository and install the dependencies with pip. It is preferable to use of a virtual environment of python3.7 or above:
 
 `$ pip install -r requirements.txt`
 
@@ -43,16 +43,26 @@ Just clone the repository and install the dependencies with pip. It is preferabl
 >
 > `lookdga.py` only uses the standard library and needs none of these packages. See [`docs/MVP.md`](docs/MVP.md) §0.
 
-Run every command **from the repository root**: all paths (`ml-data/…`, `DGAs/wordlist/…`) are relative.
-`detectdga.py` and `statsdga.py` need the NLTK `brown` corpus (to count syllables). They never download it
-themselves; install it once after the dependencies:
+Cloning is not enough since 2026: the model, the n-gram dictionary and the domain lists (about 370 MB) are
+not in git, but in the [`v2021` release](https://github.com/dpgon/DGA/releases/tag/v2021). Download them,
+together with the NLTK `brown` corpus that `detectdga.py` and `statsdga.py` use to count syllables:
+
+```
+$ python fetchdata.py --nltk
+```
+
+`fetchdata.py` only needs the standard library. It reads `ml-data/MANIFEST`, checks the SHA-256 of every file
+and deletes any that doesn't match; run it again to resume. The corpus goes to `~/nltk_data`, or to the first
+directory of `NLTK_DATA` if it is set. Without `--nltk`, install the corpus yourself:
 
 ```
 $ python -m nltk.downloader -d ~/nltk_data brown
 ```
 
-To keep it somewhere else, use that directory instead and set `NLTK_DATA` to it. If the corpus is missing,
-the scripts stop and print this command.
+The scripts never download anything themselves: if a data file or the corpus is missing, they stop and say
+which command to run.
+
+Run every command **from the repository root**: all paths (`ml-data/…`, `DGAs/wordlist/…`) are relative.
 
 ## lookdga.py
 This tool can calculate the domains of various malware that use DGA. It can also detect by domain possible DGA using regular expressions, and finally, it can bruteforce it in order to detect the day and order of generation.
@@ -117,15 +127,15 @@ $ sed -n '2000001,20000000p' tranco.csv | cut -d ',' -f 2 > tranco-ngram.dom
 
 Second, download the DGA domains for the main dataset from https://data.netlab.360.com/feeds/dga/dga.txt, and save it in the ml-data directory.
 
-> **Note (2026):** the code reads this file as `ml-data/dga.dom` (`detectdga.py:292`). Whether the 360 Netlab
-> feed is still published has not been checked. All these files, as used in 2021, are already in `ml-data/`.
+> **Note (2026):** the code reads this file as `ml-data/dga.dom`. The 360 Netlab feed no longer answers. All
+> these files, as used in 2021, are downloaded by `python fetchdata.py` (see Install).
 
 To create to second test dataset:
 ```
 $ python lookdga.py -d 2019-12-31 -n 3000 -C > ml-data/mydgas.dom
 ```
 
-The n-gram dictionary was create and saved in the repository, but it's possible to recreate it with:
+The n-gram dictionary was create and saved in the repository (since 2026, in the `v2021` release, downloaded by `fetchdata.py`), but it's possible to recreate it with:
 
 `$ python3 detectdga.py --ngram`
 
@@ -141,7 +151,7 @@ To create the secondary dataset or the alexa dataset use --secondary or --alexa 
 > These commands overwrite files in `ml-data/` and are slow (not measured, probably hours). Back up
 > `ml-data/` first.
 
-The repository has the full model, but it's possible to train it or train a different model (ngram, nosyll...): 
+The repository has the full model (downloaded by `fetchdata.py`), but it's possible to train it or train a different model (ngram, nosyll...): 
 
 `$ python detectdga.py --train ngram`
 
@@ -164,7 +174,8 @@ Finally, to test a domains with the full model: (-b option to try bruteforce, re
 
 ## Tests
 
-Tests use `pytest` and run from the repository root, in the 2021 environment described above:
+Tests use `pytest` and run from the repository root, in the 2021 environment described above, after
+`python fetchdata.py --nltk`:
 
 ```
 $ pip install -r requirements-dev.txt
@@ -172,7 +183,7 @@ $ NLTK_DATA=~/nltk_data pytest            # default run, without the slow tests
 $ NLTK_DATA=~/nltk_data pytest -m slow    # slow tests (more than 30 s each)
 ```
 
-Tests that need the NLTK corpus are skipped when it is not available. `tests/test_lookdga.py`,
+Tests that need the NLTK corpus or the data files are skipped when they are not available. `tests/test_lookdga.py`,
 `test_generators.py` (a snapshot of the 50 generators and domains confirmed by the 360 Netlab feed),
 `test_check.py` and `test_statsdga.py` pin the behaviour verified in [`docs/MVP.md`](docs/MVP.md); the rest
 cover the fixes of [`docs/CORRECCIONES.md`](docs/CORRECCIONES.md). Tests always run in UTC, because some

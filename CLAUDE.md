@@ -37,8 +37,10 @@ lookdga.py    CLI del catálogo (solo biblioteca estándar) ─┐
 statsdga.py   menú de estadísticas ────────────────────────┼─► dga.py (fachada) ─► DGAs/<familia>.py (50)
 detectdga.py  features + RandomForest + --check ───────────┘        └─ from DGAs import * + eval(nombre)
 ngram.py      diccionario de n-gramas (lo usan detectdga y statsdga)
-DGAs/wordlist/  diccionarios de generadores, sufijos públicos, top-1m de Alexa
-ml-data/        listas *.dom, tranco.ng1-4, full/tiny .pkl + -scaler.pkl (367 MB en git)
+nlpdata.py    comprueba que está el corpus brown de NLTK, sin descargarlo
+fetchdata.py  descarga y verifica los datos de ml-data/MANIFEST (solo biblioteca estándar)
+DGAs/wordlist/  diccionarios de generadores, sufijos públicos; top-1m de Alexa se descarga
+ml-data/        MANIFEST en git; listas *.dom, tranco.ng1-4 y full/tiny .pkl se descargan (367 MB)
 yara/           35 reglas de Malpedia, hoy sin uso en el código
 docs/           documentación de la puesta a punto (en español)
 ```
@@ -58,6 +60,10 @@ docs/           documentación de la puesta a punto (en español)
   - `python lookdga.py -B nvfowikhevmy.net`
   - `python detectdga.py --check google.com nvfowikhevmy.net`
   - `python statsdga.py`
+- **Datos:** no están en git. Tras clonar e instalar, `python fetchdata.py --nltk` descarga los ficheros de
+  `ml-data/MANIFEST` (assets de la release `v2021`), comprueba su SHA‑256 y borra los que no coinciden; nunca
+  sobrescribe un fichero local distinto. `--set 2026` instala el juego nuevo y `--from <dir>` copia desde un
+  directorio local en vez de descargar.
 - **Sin red:** los scripts nunca descargan nada. El corpus `brown` de NLTK se instala una vez con
   `python -m nltk.downloader -d <dir> brown` (y `NLTK_DATA=<dir>` si no es `~/nltk_data`). Si falta,
   `nlpdata.requirebrown()` detiene el script con ese comando. No vuelvas a poner descargas al importar.
@@ -168,14 +174,16 @@ Respeta el estilo existente aunque no sea el ideal. Las mejoras de estilo van en
 12. **Mantén `lookdga.py`, `dga.py` y `DGAs/` libres de dependencias externas.**
     *Por qué:* hoy solo usan la biblioteca estándar y son la parte que funciona fuera del entorno de 2021.
 13. **No lances `--ngram`, `--main`, `--secondary`, `--alexa` ni `--train` sin avisar.** Sobrescriben ficheros
-    de `ml-data/` y tardan mucho; suposición: horas.
-    *Por qué:* `full.pkl` y `tranco.ng*` son los únicos ejemplares del modelo de 2021. Antes de regenerarlos,
-    haz una copia fuera del repositorio.
+    de `ml-data/` y tardan mucho; suposición: horas. Antes, comprueba con `python fetchdata.py` que los ficheros
+    de entrada son los del juego que quieres (si no coinciden con el manifiesto, lo dice).
+    *Por qué:* `full.pkl` y `tranco.ng*` son el modelo de 2021. Hay copia en la release `v2021`, pero un modelo
+    regenerado ya no coincide con el manifiesto y `fetchdata.py` deja de dar por bueno ese fichero.
 14. **`lookdga.py -C` escribe datos en la salida estándar.** No añadas nada más a esa salida.
-    *Por qué:* el README la redirige a `ml-data/mydgas.dom`, y las dos líneas de estado que ya imprime
-    ensucian el CSV.
-15. **No edites `ml-data/*.dom` ni `DGAs/wordlist/*` a mano.** Si cambias una fuente, documenta de dónde sale
-    y cómo se obtuvo.
+    *Por qué:* el README la redirige a `ml-data/mydgas.dom`. Las líneas de estado van a la salida de error
+    desde C13; no las devuelvas a la estándar.
+15. **No edites `ml-data/*.dom` ni `DGAs/wordlist/*` a mano.** Los datos se cambian a través de
+    `ml-data/MANIFEST`: fichero nuevo con su URL, tamaño, SHA‑256, fuente (de dónde sale y cómo se obtuvo),
+    licencia y juego. No cambies el hash de un fichero que ya está publicado: añade otro.
     *Por qué:* son datos de terceros (Tranco, 360 Netlab, Alexa, Mozilla) y el estudio depende de poder
     reconstruirlos.
 16. **No toques `.idea/`.**
