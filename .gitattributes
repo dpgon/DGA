@@ -1,0 +1,6 @@
+# Data files are checked out byte for byte on every platform, without CRLF conversion on Windows:
+# fetchdata.py checks the SHA-256 of DGAs/wordlist/effective_tld_names.dat against ml-data/MANIFEST, and the
+# generators and the tests read the rest (DGAs/wordlist/luther keeps its CRLF line endings)
+DGAs/wordlist/** -text
+tests/data/** -text
+ml-data/MANIFEST -text
