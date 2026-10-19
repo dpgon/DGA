@@ -94,7 +94,8 @@ def repo_tmp(tmp_path):
     Working directory with a link to DGAs/ and a small ml-data/: the real n-gram dictionary and the first lines
     of the domain lists. Scripts run with run(..., cwd=repo_tmp) write there instead of the real ml-data/.
     '''
-    needed = [f"tranco.ng{n}" for n in range(1, 5)] + ["tranco-main.dom", "tranco-test2.dom", "mydgas.dom", "dga.dom"]
+    needed = [f"tranco.ng{n}" for n in range(1, 5)] + ["tranco-main.dom", "tranco-test2.dom", "tranco-ngram.dom",
+                                                       "mydgas.dom", "dga.dom"]
     if missingdata(needed):
         pytest.skip(f"missing ml-data/{', ml-data/'.join(missingdata(needed))}: run python fetchdata.py")
     os.symlink(join(ROOT, "DGAs"), tmp_path / "DGAs")
@@ -102,7 +103,7 @@ def repo_tmp(tmp_path):
     data.mkdir()
     for n in range(1, 5):
         os.symlink(join(ROOT, "ml-data", f"tranco.ng{n}"), data / f"tranco.ng{n}")
-    for name in ["tranco-main.dom", "tranco-test2.dom", "mydgas.dom"]:
+    for name in ["tranco-main.dom", "tranco-test2.dom", "tranco-ngram.dom", "mydgas.dom"]:
         head(join(ROOT, "ml-data", name), data / name, 20)
     # dga.dom starts with a comment header: keep it and 20 data lines
     head(join(ROOT, "ml-data", "dga.dom"), data / "dga.dom", 40)

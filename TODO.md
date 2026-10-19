@@ -403,32 +403,35 @@ Objetivo: que ningún conjunto de evaluación comparta dominios con el entrenami
 cuánto acierta el modelo de 2021 (C5, y la parte de evaluación de C3 y C4).
 
 ### 4.1 Exclusión de lo que hay en el entrenamiento (C5)
-- [ ] Escribir antes `tests/test_datasets.py` con ficheros pequeños en `repo_tmp` que tengan solapes
+- [x] Escribir antes `tests/test_datasets.py` con ficheros pequeños en `repo_tmp` que tengan solapes
       conocidos, en mayúsculas y en minúsculas. Debe fallar:
   - el conjunto secundario y el de Umbrella no contienen ningún dominio ni SLD de `tranco-main.dom`,
     `tranco-ngram.dom` ni `dga.dom`;
   - el recuento de excluidos que se imprime es el esperado.
-- [ ] Implementar en `detectdga.py` una función que cargue en un conjunto los dominios y SLD de entrenamiento
+- [x] Implementar en `detectdga.py` una función que cargue en un conjunto los dominios y SLD de entrenamiento
       (en minúsculas, dominio registrable según `sldtld()`), y usarla en `createtestdataset()` y en la
       construcción de Umbrella.
-- [ ] Imprimir el recuento de excluidos y guardarlo en `ml-data/<conjunto>.json`, que se fundirá en los
+- [x] Imprimir el recuento de excluidos y guardarlo en `ml-data/<conjunto>.json`, que se fundirá en los
       metadatos de la fase 5.
-- [ ] Conjunto secundario con dos orígenes DGA: `mydgas.dom` y `hf-dga.dom`. La columna `family` lleva el
+- [x] Conjunto secundario con dos orígenes DGA: `mydgas.dom` y `hf-dga.dom`. La columna `family` lleva el
       prefijo de origen (`own:` / `hf:`) para **no cambiar las 28 columnas** del esquema.
+      *`--secondary --set 2026` usa los ficheros del juego 2026; sin `--set`, los de 2021 (solo `own:`). El
+      recuento va en `ml-data/secondary.json` con los SHA‑256 de las entradas y del entrenamiento. Comprobado:
+      las características coinciden exactamente con las del código anterior.*
 
 ### 4.2 Conjunto Umbrella en lugar de Alexa (C3)
-- [ ] Escribir antes la prueba de la reducción: a partir de un `umbrella-raw.csv` pequeño con subdominios
+- [x] Escribir antes la prueba de la reducción: a partir de un `umbrella-raw.csv` pequeño con subdominios
       (`a.b.example.co.uk`), se obtienen dominios registrables únicos (`example.co.uk`).
-- [ ] Sustituir `createalexadataset()` (`detectdga.py:460-517`) por la construcción del conjunto Umbrella:
+- [x] Sustituir `createalexadataset()` (`detectdga.py:460-517`) por la construcción del conjunto Umbrella:
       reducción a dominio registrable, exclusión de 4.1 y salida en `ml-data/umbrella.pkl`.
-- [ ] Opciones nuevas `--umbrella` y `--test_umbrella`. `--alexa` y `--test_alexa` se mantienen como alias que
+- [x] Opciones nuevas `--umbrella` y `--test_umbrella`. `--alexa` y `--test_alexa` se mantienen como alias que
       avisan de que están obsoletas.
-- [ ] Prueba de los alias en `tests/test_cli.py`.
+- [x] Prueba de los alias en `tests/test_cli.py`.
 
 ### 4.3 Informe de evaluación por origen
-- [ ] Escribir antes la prueba: `testsecdata()` (`detectdga.py:584-639`), con un DataFrame pequeño y un modelo
+- [x] Escribir antes la prueba: `testsecdata()` (`detectdga.py:584-639`), con un DataFrame pequeño y un modelo
       falso, imprime métricas totales y por origen (`own`, `hf`, `tranco`, `umbrella`).
-- [ ] Implementar el desglose por origen con el prefijo de `family`.
+- [x] Implementar el desglose por origen con el prefijo de `family`.
 
 ### 4.4 Medir el modelo de 2021 (entorno 2021)
 - [ ] Construir `secondary.pkl` y `umbrella.pkl` con los datos 2026, el diccionario de n-gramas de 2021 y la
