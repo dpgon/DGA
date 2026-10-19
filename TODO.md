@@ -434,15 +434,17 @@ cuánto acierta el modelo de 2021 (C5, y la parte de evaluación de C3 y C4).
 - [x] Implementar el desglose por origen con el prefijo de `family`.
 
 ### 4.4 Medir el modelo de 2021 (entorno 2021)
-- [ ] Construir `secondary.pkl` y `umbrella.pkl` con los datos 2026, el diccionario de n-gramas de 2021 y la
+- [x] Construir `secondary.pkl` y `umbrella.pkl` con los datos 2026, el diccionario de n-gramas de 2021 y la
       lista de sufijos de 2021, que son los recursos del modelo de 2021.
-- [ ] Ejecutar `--test_secondary full`, `--test_secondary tiny`, `--test_umbrella full` y `--test_umbrella
+- [x] Ejecutar `--test_secondary full`, `--test_secondary tiny`, `--test_umbrella full` y `--test_umbrella
       tiny`, y guardar las salidas completas.
-- [ ] Anotar los tiempos de construcción y de evaluación.
-- [ ] Escribir en `docs/MVP.md` una sección nueva, «Métricas del modelo de 2021, medidas en 2026», con la
+- [x] Anotar los tiempos de construcción y de evaluación.
+      *`--secondary --set 2026`: 34 min; `--umbrella`: 2 min; cada evaluación, de 1 a 7 s. Salidas guardadas
+      fuera del repositorio, en la carpeta de trabajo; las cifras están en `docs/MVP.md`.*
+- [x] Escribir en `docs/MVP.md` una sección nueva, «Métricas del modelo de 2021, medidas en 2026», con la
       matriz de confusión, la precisión, la exhaustividad y la exactitud por conjunto y por origen, el
       número de excluidos y los IDs de los datos usados.
-- [ ] Sustituir en `README.md` la nota sobre `--test_alexa` por un enlace a esas métricas.
+- [x] Sustituir en `README.md` la nota sobre `--test_alexa` por un enlace a esas métricas.
 
 **Aceptación de la fase 4:**
 - las pruebas demuestran que los conjuntos de evaluación no se solapan con el entrenamiento;
