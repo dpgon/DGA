@@ -1,7 +1,10 @@
 name: tests
 
 on:
+  # Branches only: the tags of the data and model releases (data-2026, model-2026) are pushed before the
+  # release assets exist, and the tests need them
   push:
+    branches: ["**"]
   pull_request:
 
 jobs:

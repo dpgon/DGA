@@ -688,12 +688,17 @@ Objetivo: publicar de una vez la actualización completa y comprobar en GitHub l
 local. Cada paso requiere el visto bueno del autor en el momento de hacerlo.
 
 ### 7.1 Antes de publicar
-- [ ] Revisar con el autor la lista de lo que se va a publicar:
+- [x] Revisar con el autor la lista de lo que se va a publicar:
   - los commits de `main` (`git log origin/main..main`);
   - las dos releases de `release/`, con sus notas;
   - las etiquetas nuevas.
-- [ ] Comprobar que ningún fichero de más de 100 MB entra en los commits (`git rev-list --objects
+  *Hecho (2026-10-19): 40 commits, releases `data-2026` (3 ficheros) y `model-2026` (10), comprobados contra el
+  manifiesto; las notas de `data-2026` se corrigieron (decían que el modelo seguía siendo el de 2021). El autor
+  elige subir primero las etiquetas de las releases, crear las releases y después hacer push de `main`, y una
+  etiqueta `v2026` sin release. Para eso la CI deja de ejecutarse al subir etiquetas.*
+- [x] Comprobar que ningún fichero de más de 100 MB entra en los commits (`git rev-list --objects
       origin/main..main` + `git cat-file --batch-check`) y que `release/` y `ml-data/*` no están versionados.
+  *Hecho: ningún objeto nuevo pasa de 5 MB; de `ml-data/` solo está versionado `MANIFEST`, y `release/` nada.*
 
 ### 7.2 Releases
 - [ ] Publicar la release de datos (`gh release create data-2026 …`) con los ficheros y las notas de
