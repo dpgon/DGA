@@ -113,6 +113,8 @@ def existdomain(domain, short=True):
     return False
 
 
+# Dead code (never called; see CLAUDE.md, rule 9). It still reads DGAs/wordlist/top-1m.csv, which is no longer in
+# git: python fetchdata.py installs it with the 2021 data set
 def checkdomains(malware, date, nr):
     if not date:
         date = datetime.now()

@@ -5,6 +5,18 @@ from nltk.tokenize import LegalitySyllableTokenizer
 from nltk.corpus import brown
 from ngram import ngrams
 from nlpdata import requirebrown
+from sys import exit, stderr
+
+# Real domains to compare with (rank,domain). Alexa retired its ranking in 2022: Tranco of the 2026 data set (C3)
+TOPDOMAINS = "ml-data/tranco.csv"
+
+
+def opentop():
+    try:
+        return open(TOPDOMAINS)
+    except FileNotFoundError:
+        print(f"Missing data file {TOPDOMAINS}. Download it with: python fetchdata.py --set 2026", file=stderr)
+        exit(1)
 
 
 
@@ -102,7 +114,7 @@ def doublel(malware, date, nr):
     if not date:
         date = datetime.now()
     if not malware:
-        with open("DGAs/wordlist/top-1m.csv") as f:
+        with opentop() as f:
             topdomains = f.readlines()
             topdomains = topdomains[:nr * len(dga.listall())]
     else:
@@ -137,7 +149,7 @@ def repeatedl(malware, date, nr):
     if not date:
         date = datetime.now()
     if not malware:
-        with open("DGAs/wordlist/top-1m.csv") as f:
+        with opentop() as f:
             topdomains = f.readlines()
             topdomains = topdomains[:nr * len(dga.listall())]
     else:
@@ -175,7 +187,7 @@ def ratiovc(malware, date, nr, numbers=False):
     if not date:
         date = datetime.now()
     if not malware:
-        with open("DGAs/wordlist/top-1m.csv") as f:
+        with opentop() as f:
             topdomains = f.readlines()
             topdomains = topdomains[:nr * len(dga.listall())]
     else:
@@ -212,7 +224,7 @@ def syll(malware, date, nr):
     if not date:
         date = datetime.now()
     if not malware:
-        with open("DGAs/wordlist/top-1m.csv") as f:
+        with opentop() as f:
             topdomains = f.readlines()
             topdomains = topdomains[:nr * len(dga.listall())]
     else:
@@ -253,7 +265,7 @@ def syll(malware, date, nr):
 
 def calcngram(malware, ng):
     if not malware:
-        with open("DGAs/wordlist/top-1m.csv") as f:
+        with opentop() as f:
             domains = f.readlines()
             domains = domains[:2000]
     else:
@@ -456,9 +468,9 @@ while n:
                 n2 = int(n2)
             else:
                 n2 = 10000
-            n3 = input("Check real domains of Alexa top million (y/N)? ")
+            n3 = input("Check real domains of Tranco (y/N)? ")
             if 'y' in n3.lower():
-                print(f"Alexa top million: ({n2*len(dga.listall())}):")
+                print(f"Tranco: ({n2*len(dga.listall())}):")
                 doublel(None, None, n2)
             else:
                 for family in dga.listall():
@@ -472,9 +484,9 @@ while n:
                 n2 = int(n2)
             else:
                 n2 = 10000
-            n3 = input("Check real domains of Alexa top million (y/N)? ")
+            n3 = input("Check real domains of Tranco (y/N)? ")
             if 'y' in n3.lower():
-                print(f"Alexa top million: ({n2*len(dga.listall())}):")
+                print(f"Tranco: ({n2*len(dga.listall())}):")
                 repeatedl(None, None, n2)
             else:
                 for family in dga.listall():
@@ -488,9 +500,9 @@ while n:
                 n2 = int(n2)
             else:
                 n2 = 10000
-            n3 = input("Check real domains of Alexa top million (y/N)? ")
+            n3 = input("Check real domains of Tranco (y/N)? ")
             if 'y' in n3.lower():
-                print(f"Alexa top million: ({n2*len(dga.listall())}):")
+                print(f"Tranco: ({n2*len(dga.listall())}):")
                 ratiovc(None, None, n2)
             else:
                 for family in dga.listall():
@@ -504,9 +516,9 @@ while n:
                 n2 = int(n2)
             else:
                 n2 = 10000
-            n3 = input("Check real domains of Alexa top million (y/N)? ")
+            n3 = input("Check real domains of Tranco (y/N)? ")
             if 'y' in n3.lower():
-                print(f"Alexa top million: ({n2*len(dga.listall())}):")
+                print(f"Tranco: ({n2*len(dga.listall())}):")
                 ratiovc(None, None, n2, numbers=True)
             else:
                 for family in dga.listall():
@@ -520,9 +532,9 @@ while n:
                 n2 = int(n2)
             else:
                 n2 = 10000
-            n3 = input("Check real domains of Alexa top million (y/N)? ")
+            n3 = input("Check real domains of Tranco (y/N)? ")
             if 'y' in n3.lower():
-                print(f"Alexa top million: ({n2*len(dga.listall())}):")
+                print(f"Tranco: ({n2*len(dga.listall())}):")
                 syll(None, None, n2)
             else:
                 for family in dga.listall():
@@ -536,7 +548,7 @@ while n:
                 n2 = int(n2)
             else:
                 n2 = 500000
-            with open("DGAs/wordlist/top-1m.csv") as f:
+            with opentop() as f:
                 lines = f.readlines()
                 lines = lines[2000:n2+500000]
             domains = []
@@ -550,9 +562,9 @@ while n:
             print(len(ng.ngram3))
             print(len(ng.ngram4))
 
-            n3 = input("Check first 2000 domains of Alexa top million (y/N)? ")
+            n3 = input("Check first 2000 domains of Tranco (y/N)? ")
             if 'y' in n3.lower():
-                print(f"Alexa 2000 domains:")
+                print(f"Tranco 2000 domains:")
                 calcngram(None, ng)
             else:
                 for family in dga.listall():

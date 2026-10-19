@@ -304,24 +304,31 @@ obtenidos (C8, C7, C3, C4). **El detector sigue funcionando con el modelo de 202
       `DGAs/wordlist/effective_tld_names.dat`: el modelo de 2021 necesita la lista de 2021 (ver 5.3).
 
 ### 3.3 Dominios legítimos actuales (C3)
-- [ ] Elegir la lista Tranco más reciente en el momento de implementarlo
+- [x] Elegir la lista Tranco más reciente en el momento de implementarlo
       (`https://tranco-list.eu/api/lists/date/latest`) y anotar su ID. La comprobada en el diseño es la
       `8PX8V`.
-- [ ] Descargar la lista **completa** (`https://tranco-list.eu/list/<ID>/full`) como `ml-data/tranco.csv`.
-- [ ] Generar `tranco-main.dom`, `tranco-test2.dom` y `tranco-ngram.dom` con los tres `sed` del README,
+      *Hecho el 2026-10-19: lista `467YX` (2026-09-19 a 2026-10-18), 4.595.070 dominios.*
+- [x] Descargar la lista **completa** (`https://tranco-list.eu/list/<ID>/full`) como `ml-data/tranco.csv`.
+- [x] Generar `tranco-main.dom`, `tranco-test2.dom` y `tranco-ngram.dom` con los tres `sed` del README,
       quitando los `\r`.
-- [ ] Escribir `tests/test_data.py` (marcador `slow`): los tres ficheros no comparten ningún dominio, y sus
+      *Van en `ml-data/2026/`, no en `ml-data/`: se llaman igual que los de 2021, la fase 4 necesita los dos
+      juegos a la vez y `fetchdata.py` nunca sobrescribe un fichero distinto. Lo mismo vale para
+      `mydgas.dom` (3.4). Los ficheros sin nombre repetido quedan en `ml-data/`.*
+- [x] Escribir `tests/test_data.py` (marcador `slow`): los tres ficheros no comparten ningún dominio, y sus
       tamaños y hashes coinciden con el manifiesto.
-- [ ] Añadir al juego `2026` del manifiesto `tranco.csv` y los tres `.dom`, con el ID Tranco en la columna
+- [x] Añadir al juego `2026` del manifiesto `tranco.csv` y los tres `.dom`, con el ID Tranco en la columna
       `fuente`.
-- [ ] Descargar Cisco Umbrella top‑1M (`http://s3-us-west-1.amazonaws.com/umbrella-static/top-1m.csv.zip`),
+- [x] Descargar Cisco Umbrella top‑1M (`http://s3-us-west-1.amazonaws.com/umbrella-static/top-1m.csv.zip`),
       descomprimirlo como `ml-data/umbrella-raw.csv` y anotar la fecha y el SHA‑256 en el manifiesto. La
       reducción a dominios registrables se hace en la fase 4.
-- [ ] `statsdga.py`: cambiar las seis lecturas de `DGAs/wordlist/top-1m.csv` (`statsdga.py:110,145,183,220,
+- [x] `statsdga.py`: cambiar las seis lecturas de `DGAs/wordlist/top-1m.csv` (`statsdga.py:110,145,183,220,
       260,543`) por `ml-data/tranco.csv`, que tiene el mismo formato `rango,dominio`, definido como una
       constante. Cambiar los textos «Alexa top million» del menú por «Tranco».
-- [ ] Actualizar la prueba 1.5 si cambia algún valor que dependa de la lista. La opción 1 no depende de ella.
-- [ ] Retirar `DGAs/wordlist/top-1m.csv` del árbol (`git rm`); sigue en `v2021`. `checkdomains()`, que es
+      *Como `tranco.csv` solo está en el juego `2026`, si falta, `statsdga.py` pide
+      `python fetchdata.py --set 2026`.*
+- [x] Actualizar la prueba 1.5 si cambia algún valor que dependa de la lista. La opción 1 no depende de ella.
+      *No cambió ningún valor; se añadieron dos pruebas de las ramas con Tranco.*
+- [x] Retirar `DGAs/wordlist/top-1m.csv` del árbol (`git rm`); sigue en `v2021`. `checkdomains()`, que es
       código muerto, también lo lee: añadir un comentario que lo señale.
 
 ### 3.4 Dominios DGA (C4)
