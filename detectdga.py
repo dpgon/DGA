@@ -23,6 +23,23 @@ etlds = []
 # Data files shared by several functions, defined once so the checks and the reads cannot diverge (C6)
 NGRAM = "ml-data/tranco"
 TRANCO_TEST2 = "ml-data/tranco-test2.dom"
+FETCH = "Download them with: python fetchdata.py"
+
+
+def requirefiles(files, hint=FETCH):
+    '''
+    Exit with an error if any of the data files is missing. Since C8 they are downloaded, not cloned with the code
+    :param files: list of paths relative to the repository root
+    :param hint: how to get the missing files
+    '''
+    missing = [f for f in files if not isfile(f)]
+    if missing:
+        print(f"Missing data files: {', '.join(missing)}. {hint}", file=stderr)
+        exit(1)
+
+
+def modelfiles(dataset):
+    return [f"ml-data/{dataset}.pkl", f"ml-data/{dataset}-scaler.pkl"]
 
 
 def loadetlds():
@@ -538,6 +555,7 @@ def createalexadataset():
 
 
 def traindata(dataset="full"):
+    requirefiles(['ml-data/main.pkl'], "Create it with --main (its input files come from python fetchdata.py).")
     df = pd.read_pickle('ml-data/main.pkl')
 
     # We don't need info strings
@@ -602,6 +620,9 @@ def traindata(dataset="full"):
 
 
 def testsecdata(dataset="full", alexa=False):
+    requirefiles(modelfiles(dataset), f"{FETCH} (full and tiny), or create the model with --train {dataset}.")
+    option = "--alexa" if alexa else "--secondary"
+    requirefiles([f"ml-data/{option[2:]}.pkl"], f"Create it with {option} (its input files come from python fetchdata.py).")
     if alexa:
         df = pd.read_pickle('ml-data/alexa.pkl')
     else:
@@ -740,6 +761,7 @@ def classify(domlist, model, sc, ng, LP):
 
 
 def testdomains(domlist, brute=False):
+    requirefiles(modelfiles("full") + [f"{NGRAM}.ng{n}" for n in range(1, 5)])
     loadetlds()
     ng = loadngram(NGRAM)
     requirebrown()
@@ -797,7 +819,7 @@ def checktranco():
 
 def tranconotfound():
     print(f"Tranco dictionary not found at ml-data (missing {', '.join(missingngram())}). "
-          f"Try to create it with --ngram option.")
+          f"Download it with python fetchdata.py, or create it with --ngram option.")
     exit(1)
 
 
@@ -830,56 +852,37 @@ def main():
     if args.main:
         # Create the main dataset and save it in ml-data/main.pkl
         if checktranco():
-            if isfile("ml-data/tranco-main.dom") and isfile("ml-data/dga.dom"):
-                createmaindataset()
-            else:
-                print("Files ml-data/tranco-main.dom and/or ml-data/dga.dom not found")
+            requirefiles(["ml-data/tranco-main.dom", "ml-data/dga.dom"])
+            createmaindataset()
         else:
             tranconotfound()
     elif args.secondary:
         # Create the secondary test dataset
         if checktranco():
-            if isfile(TRANCO_TEST2) and isfile("ml-data/mydgas.dom"):
-                createtestdataset()
-            else:
-                print(f"Files {TRANCO_TEST2} and/or ml-data/mydgas.dom not found")
+            requirefiles([TRANCO_TEST2, "ml-data/mydgas.dom"])
+            createtestdataset()
         else:
             tranconotfound()
     elif args.alexa:
         # Create the Alexa test dataset
         if checktranco():
-            if isfile("ml-data/alexa.dom"):
-                createalexadataset()
-            else:
-                print("File ml-data/alexa.dom not found")
+            requirefiles(["ml-data/alexa.dom"])
+            createalexadataset()
         else:
             tranconotfound()
     elif args.ngram:
         # Create the standard Tranco ngram dictionary
-        if isfile("ml-data/tranco-ngram.dom"):
-            createstdngram()
-        else:
-            print("File ml-data/tranco-ngram.dom not found.")
+        requirefiles(["ml-data/tranco-ngram.dom"])
+        createstdngram()
     elif args.train:
         # Train our model
-        if isfile("ml-data/main.pkl"):
-            traindata(dataset=args.train)
-        else:
-            print("File ml-data/main.pkl not found. Try to create it with --main option.")
+        traindata(dataset=args.train)
     elif args.test_secondary:
         # Train our model
-        if isfile("ml-data/secondary.pkl") and isfile(f"ml-data/{args.test_secondary}.pkl") and \
-                isfile(f"ml-data/{args.test_secondary}-scaler.pkl"):
-            testsecdata(dataset=args.test_secondary, alexa=False)
-        else:
-            print("Data file or model files not found. Try to create data file with --secondary or create model with --train option.")
+        testsecdata(dataset=args.test_secondary, alexa=False)
     elif args.test_alexa:
         # Train our model
-        if isfile("ml-data/alexa.pkl") and isfile(f"ml-data/{args.test_alexa}.pkl") and \
-                isfile(f"ml-data/{args.test_alexa}-scaler.pkl"):
-            testsecdata(dataset=args.test_alexa, alexa=True)
-        else:
-            print("Data file or model files not found. Try to create data file with --alexa or create model with --train option.")
+        testsecdata(dataset=args.test_alexa, alexa=True)
     elif args.check:
         testdomains(args.check, brute=args.bruteforce)
     else:

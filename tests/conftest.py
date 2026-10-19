@@ -50,6 +50,19 @@ def run(script, *args, stdin=None, timeout=900, cwd=ROOT):
     return proc
 
 
+MODEL_FILES = ["full.pkl", "full-scaler.pkl", "tranco.ng1", "tranco.ng2", "tranco.ng3", "tranco.ng4"]
+
+
+def missingdata(names):
+    return [n for n in names if not os.path.isfile(join(ROOT, "ml-data", n))]
+
+
+def pytest_runtest_setup(item):
+    # The data files are downloaded with fetchdata.py (C8); without them the model tests can't run
+    if item.get_closest_marker("model") and missingdata(MODEL_FILES):
+        pytest.skip(f"missing ml-data/{', ml-data/'.join(missingdata(MODEL_FILES))}: run python fetchdata.py")
+
+
 @pytest.fixture
 def nltk_data():
     '''
@@ -81,6 +94,9 @@ def repo_tmp(tmp_path):
     Working directory with a link to DGAs/ and a small ml-data/: the real n-gram dictionary and the first lines
     of the domain lists. Scripts run with run(..., cwd=repo_tmp) write there instead of the real ml-data/.
     '''
+    needed = [f"tranco.ng{n}" for n in range(1, 5)] + ["tranco-main.dom", "tranco-test2.dom", "mydgas.dom", "dga.dom"]
+    if missingdata(needed):
+        pytest.skip(f"missing ml-data/{', ml-data/'.join(missingdata(needed))}: run python fetchdata.py")
     os.symlink(join(ROOT, "DGAs"), tmp_path / "DGAs")
     data = tmp_path / "ml-data"
     data.mkdir()

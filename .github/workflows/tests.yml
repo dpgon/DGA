@@ -37,5 +37,17 @@ jobs:
             python -m nltk.downloader -d "$NLTK_DATA" brown
           fi
 
+      # The data files are release assets (C8), listed in ml-data/MANIFEST: a new manifest means new files
+      - name: Cache data files
+        uses: actions/cache@v4
+        with:
+          path: |
+            ml-data
+            DGAs/wordlist/top-1m.csv
+          key: data-${{ hashFiles('ml-data/MANIFEST') }}
+
+      - name: Download and verify data files
+        run: python fetchdata.py
+
       - name: Run tests (without the slow ones)
         run: pytest

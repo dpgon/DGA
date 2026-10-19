@@ -1,0 +1,28 @@
+# Data files of the repository that are not kept in git. python fetchdata.py downloads them and checks them.
+#
+# One file per line, tab separated, with these columns:
+#   file     path relative to the repository root, where the file is installed
+#   url      where it is downloaded from (a release asset, or the original source when it can't be redistributed)
+#   size     size in bytes
+#   sha256   SHA-256 of the file; fetchdata.py deletes any download that doesn't match
+#   source   where the data comes from and how it was obtained
+#   license  license or terms of the data, "not verified" when they haven't been checked yet
+#   set      data sets the file belongs to: 2021 (the master's project, release v2021) and/or 2026, comma separated
+#
+# Lines starting with # are comments. The first line that is not a comment is the header.
+file	url	size	sha256	source	license	set
+ml-data/full.pkl	https://github.com/dpgon/DGA/releases/download/v2021/full.pkl	99897641	922073c5551b1d34f39f0fee477535f236252ca0e3b26ac609187fa7d507640f	Random Forest model, author (2021)	GPL-2.0	2021
+ml-data/full-scaler.pkl	https://github.com/dpgon/DGA/releases/download/v2021/full-scaler.pkl	1026	4c1d57484230ed7e67243a3c29760535e99d77ca67095406ae0c6665829ae7ea	StandardScaler of full.pkl, author (2021)	GPL-2.0	2021
+ml-data/tiny.pkl	https://github.com/dpgon/DGA/releases/download/v2021/tiny.pkl	57941657	82726ac9d6d3567202692fb2dafdf97fc632d9fe4917c7ee8c9ab713456a2063	Random Forest model without n-grams, syllables, entropy and gini, author (2021)	GPL-2.0	2021
+ml-data/tiny-scaler.pkl	https://github.com/dpgon/DGA/releases/download/v2021/tiny-scaler.pkl	618	7e70f61532bcc37691f92a7f504eff4f22e5cf0237c840b1a96a94aadd01a997	StandardScaler of tiny.pkl, author (2021)	GPL-2.0	2021
+ml-data/tranco.ng1	https://github.com/dpgon/DGA/releases/download/v2021/tranco.ng1	1155	f4bcbddb582428551cfdba0955fee7546d5ae4c2f373e8a65a4e0c493bd632a0	1-gram dictionary built with --ngram from tranco-ngram.dom as the README describes, author (2021)	GPL-2.0	2021
+ml-data/tranco.ng2	https://github.com/dpgon/DGA/releases/download/v2021/tranco.ng2	18890	2b2470cad6b2e6e798f507443632e4ffa389b218594cd02f5d5fd9dbc98f47e4	2-gram dictionary built with --ngram from tranco-ngram.dom as the README describes, author (2021)	GPL-2.0	2021
+ml-data/tranco.ng3	https://github.com/dpgon/DGA/releases/download/v2021/tranco.ng3	666204	c8d5cd462fb9c40099352278cd476927a373a8984d9670fcc90f186e027fb2cb	3-gram dictionary built with --ngram from tranco-ngram.dom as the README describes, author (2021)	GPL-2.0	2021
+ml-data/tranco.ng4	https://github.com/dpgon/DGA/releases/download/v2021/tranco.ng4	8930681	d90c958153699eacd63c376c40955596d9e2815ac369d06e8b49801082a03686	4-gram dictionary built with --ngram from tranco-ngram.dom as the README describes, author (2021)	GPL-2.0	2021
+ml-data/alexa.dom	https://github.com/dpgon/DGA/releases/download/v2021/alexa.dom	7974428	c7fdad28d44810eb881bef553a2c567248037aaa2ad14c0e7e9b9028064d0487	Alexa top 1M, 2021 (exact download not recorded)	not verified	2021
+ml-data/dga.dom	https://github.com/dpgon/DGA/releases/download/v2021/dga.dom	99052815	3e27d6ee01105faadbeea9f08607da80f1ca737d54f80739eba8d9c3bef12143	360 Netlab DGA feed, 2021	not verified	2021
+ml-data/mydgas.dom	https://github.com/dpgon/DGA/releases/download/v2021/mydgas.dom	22205235	7d9cbbc4ffa9c6bd4a29e3cd65cb9bfb2a7cba211e3ba78738ed9c179ef40165	python lookdga.py -d 2019-12-31 -n 3000 -C, author (2021)	GPL-2.0	2021
+ml-data/tranco-main.dom	https://github.com/dpgon/DGA/releases/download/v2021/tranco-main.dom	23216414	3f682abb06d3a31cdb4e2a2d3bba3ad5d9404b937608c1db623423c41a0a53f8	Tranco list 9Q72, lines 1-1500000	not verified	2021
+ml-data/tranco-test2.dom	https://github.com/dpgon/DGA/releases/download/v2021/tranco-test2.dom	7974795	7f210205518daded9141eb1a0f47ac248073ac13ac00590788484dc30b4fd9cb	Tranco list 9Q72, lines 1500001-2000000	not verified	2021
+ml-data/tranco-ngram.dom	https://github.com/dpgon/DGA/releases/download/v2021/tranco-ngram.dom	56901734	40b76cab9b183b4251fb3b81b06f3b40847be57d13c6ba5a9c35136fcf2934fb	Tranco list 9Q72, lines 2000001-	not verified	2021
+DGAs/wordlist/top-1m.csv	https://github.com/dpgon/DGA/releases/download/v2021/top-1m.csv	14521119	0ae32f063a6bc3754d709be26590db25abe98bc01995dc20809f57f580bf8eb2	Alexa top 1M (638,215 rows), 2021	not verified	2021

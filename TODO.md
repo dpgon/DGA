@@ -252,28 +252,30 @@ Objetivo: que los datos pesados salgan de git y se descarguen verificados, y que
 obtenidos (C8, C7, C3, C4). **El detector sigue funcionando con el modelo de 2021**, descargado de `v2021`.
 
 ### 3.1 Manifiesto y descarga verificada (C8)
-- [ ] Definir el formato de `ml-data/MANIFEST`: TSV con las columnas `fichero`, `url`, `tamaño`, `sha256`,
-      `fuente`, `licencia` y `juego` (`2021` | `2026`). Documentarlo en una cabecera comentada.
-- [ ] Rellenar el manifiesto con los assets de `v2021` (hashes de 0.2), todos en el juego `2021`.
-- [ ] Crear `fetchdata.py` en la raíz, solo con biblioteca estándar (`urllib`, `hashlib`, `argparse`):
+- [x] Definir el formato de `ml-data/MANIFEST`: TSV con las columnas `file`, `url`, `size`, `sha256`,
+      `source`, `license` y `set` (`2021` y/o `2026`, separados por comas). Documentarlo en una cabecera
+      comentada. *Los nombres van en inglés, como la CLI y el código (`CLAUDE.md`); en este documento,
+      «juego» es `set`.*
+- [x] Rellenar el manifiesto con los assets de `v2021` (hashes de 0.2), todos en el juego `2021`.
+- [x] Crear `fetchdata.py` en la raíz, solo con biblioteca estándar (`urllib`, `hashlib`, `argparse`):
   - descarga a `ml-data/` los ficheros del manifiesto;
   - verifica cada SHA‑256 y borra el fichero si no coincide;
   - salta los que ya existen y están verificados;
   - opción `--nltk` que lanza el comando de `nlpdata.py`;
-  - opción `--desde <directorio>`, que copia los ficheros desde un directorio local en lugar de descargarlos,
-    con la misma verificación de SHA‑256. Es lo que permite probar los juegos nuevos antes de publicarlos.
-- [ ] Escribir `tests/test_fetchdata.py` con un servidor `http.server` local:
+  - opción `--from <directorio>` (en el diseño, `--desde`), que copia los ficheros desde un directorio local
+    en lugar de descargarlos, con la misma verificación de SHA‑256. Es lo que permite probar los juegos nuevos antes de publicarlos.
+- [x] Escribir `tests/test_fetchdata.py` con un servidor `http.server` local:
   - un fichero correcto se descarga y se verifica;
   - un hash incorrecto da un código de salida distinto de 0 y no deja el fichero;
   - una segunda ejecución no descarga nada;
-  - `--desde` con un fichero correcto lo instala, y con uno alterado falla.
-- [ ] Escribir antes en `tests/test_cli.py`: con `ml-data/` vacío en `repo_tmp`, `--check google.com` termina
+  - `--from` con un fichero correcto lo instala, y con uno alterado falla.
+- [x] Escribir antes en `tests/test_cli.py`: con `ml-data/` vacío en `repo_tmp`, `--check google.com` termina
       con un mensaje que dice que hay que ejecutar `python fetchdata.py` y con un código distinto de 0. Debe
       fallar.
-- [ ] Implementar ese mensaje en `detectdga.py`: comprobar los ficheros necesarios antes de cargarlos en
+- [x] Implementar ese mensaje en `detectdga.py`: comprobar los ficheros necesarios antes de cargarlos en
       `testdomains`, `testsecdata` y `traindata`.
-- [ ] `.gitignore`: añadir `ml-data/*` y `!ml-data/MANIFEST`.
-- [ ] Retirar del índice los ficheros de `ml-data/` salvo el manifiesto: `git rm --cached ml-data/*.pkl
+- [x] `.gitignore`: añadir `ml-data/*` y `!ml-data/MANIFEST`.
+- [x] Retirar del índice los ficheros de `ml-data/` salvo el manifiesto: `git rm --cached ml-data/*.pkl
       ml-data/*.dom ml-data/tranco.ng*`. Siguen en `v2021`.
 - [ ] Actualizar la CI (1.7): `python fetchdata.py` con caché de `ml-data/` indexada por el hash de
       `ml-data/MANIFEST`. Probarlo con `act`; la caché real de GitHub solo se comprueba en la fase 7.
@@ -349,11 +351,11 @@ obtenidos (C8, C7, C3, C4). **El detector sigue funcionando con el modelo de 202
 - [ ] Rellenar en el manifiesto sus URLs definitivas
       (`https://github.com/dpgon/DGA/releases/download/datos-2026/<fichero>`). Los ficheros que no se
       redistribuyen llevan la URL de su fuente.
-- [ ] `fetchdata.py --juego 2026` instala el juego de datos nuevo; hasta la fase 7, con
-      `--desde release/datos-2026`. Por defecto, los ficheros del **modelo** y del diccionario siguen siendo
+- [ ] `fetchdata.py --set 2026` instala el juego de datos nuevo; hasta la fase 7, con
+      `--from release/datos-2026`. Por defecto, los ficheros del **modelo** y del diccionario siguen siendo
       los de `2021` hasta la fase 5.
 - [ ] **Verificar:** en un clon nuevo hecho desde el repositorio local, `fetchdata.py` (por defecto, que
-      descarga de `v2021`) y `fetchdata.py --juego 2026 --desde <ruta>/release/datos-2026` instalan y
+      descarga de `v2021`) y `fetchdata.py --set 2026 --from <ruta>/release/datos-2026` instalan y
       verifican todo, y las pruebas de las fases 1–2 pasan.
 
 **Aceptación de la fase 3:**
@@ -512,7 +514,7 @@ Depende de: el anexo del sondeo (1.6), las fases 2–4 y los datos del juego `20
 - [ ] Actualizar el manifiesto con sus URLs definitivas. El juego por defecto pasa a `2026`; `2021` queda como
       juego histórico.
 - [ ] **Verificar:** en un clon nuevo hecho desde el repositorio local, `fetchdata.py --desde
-      <ruta>/release/modelo-2026` y `--desde <ruta>/release/datos-2026` dejan `--check` funcionando con el
+      <ruta>/release/modelo-2026` y `--from <ruta>/release/datos-2026` dejan `--check` funcionando con el
       modelo nuevo.
 
 ### 5.5 CI en las versiones nuevas
