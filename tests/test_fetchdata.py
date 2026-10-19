@@ -134,3 +134,51 @@ def test_repository_manifest_is_valid():
     import fetchdata
     files = {e["file"] for e in fetchdata.readmanifest(f"{ROOT}/ml-data/MANIFEST") if "2021" in e["set"]}
     assert {"ml-data/full.pkl", "ml-data/full-scaler.pkl", "ml-data/tranco.ng1", "ml-data/tranco.ng4"} <= files
+
+
+# --- Files that are not redistributed: extracted from a zip, or derived from another file ------------------
+
+def test_member_of_a_zip(tmp_path, server):
+    import zipfile
+    www, url, requests = server
+    with zipfile.ZipFile(www / "list.zip", "w") as z:
+        z.writestr("top-1m.csv", "1,example.com\r\n")
+    proc, root = fetch(tmp_path, [entry("raw.csv", b"1,example.com\r\n", url).replace(
+        f"{url}/raw.csv", f"{url}/list.zip#top-1m.csv")])
+    assert proc.returncode == 0, proc.stderr
+    assert (root / "ml-data" / "raw.csv").read_bytes() == b"1,example.com\r\n"
+    assert not [p for p in (root / "ml-data").iterdir() if p.name != "raw.csv"]
+
+
+def test_lines_derived_from_another_file(tmp_path, server):
+    # Same result as the README: sed -n 'A,Bp' list.csv | cut -d ',' -f 2, without the \r
+    www, url, requests = server
+    full = b"1,a.com\r\n2,b.com\r\n3,c.com\r\n4,d.com\r\n"
+    (www / "list.csv").write_bytes(full)
+    lines = [entry("list.csv", full, url),
+             entry("first.dom", b"a.com\nb.com\n", "x").replace("x/first.dom", "lines:ml-data/list.csv:1-2"),
+             entry("rest.dom", b"c.com\nd.com\n", "x").replace("x/rest.dom", "lines:ml-data/list.csv:3-20")]
+    proc, root = fetch(tmp_path, lines)
+    assert proc.returncode == 0, proc.stderr
+    assert (root / "ml-data" / "rest.dom").read_bytes() == b"c.com\nd.com\n"
+    assert requests == ["/list.csv"]
+
+
+def test_derived_file_needs_its_source(tmp_path):
+    proc, root = fetch(tmp_path, [entry("first.dom", b"a.com\n", "x").replace(
+        "x/first.dom", "lines:ml-data/list.csv:1-1")])
+    assert proc.returncode != 0
+    assert "ml-data/list.csv" in proc.stderr
+
+
+def test_from_falls_back_to_the_source(tmp_path, server):
+    # Files that are not in the local release directory are downloaded from their URL
+    www, url, requests = server
+    (www / "b.dom").write_bytes(b"b.com\n")
+    local = tmp_path / "release"
+    local.mkdir()
+    (local / "a.dom").write_bytes(b"a.com\n")
+    proc, root = fetch(tmp_path, [entry("a.dom", b"a.com\n", "http://127.0.0.1:9"), entry("b.dom", b"b.com\n", url)],
+                       "--from", str(local))
+    assert proc.returncode == 0, proc.stderr
+    assert requests == ["/b.dom"]

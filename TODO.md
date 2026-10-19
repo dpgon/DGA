@@ -359,23 +359,30 @@ obtenidos (C8, C7, C3, C4). **El detector sigue funcionando con el modelo de 202
       *Revisado el 2026-10-19, resultado en la columna `license`: Hugging Face CC BY 2.0 y PSL MPL‑2.0 permiten
       redistribuir. Tranco no declara licencia y mezcla fuentes con términos distintos (Cloudflare Radar es
       CC BY‑NC 4.0). Umbrella solo dice «free of charge». Netlab no publica términos. **Qué se sube en
-      `datos-2026` lo decide el autor** (3.5).*
+      `data-2026` lo decide el autor** (3.5).*
 - [ ] **Fuera del código:** enviar a Fraunhofer FKIE la solicitud de acceso a DGArchive. Anotar la fecha y la
       respuesta en `docs/FUTURE.md` §1.2.1.
 
 ### 3.5 Borrador local de la release de datos 2026
-- [ ] Elegir el nombre definitivo de la release (propuesta: `datos-2026`).
+- [x] Elegir el nombre definitivo de la release (propuesta: `data-2026`).
+      *El autor eligió `data-2026` (en inglés, como `v2021`).*
 - [x] Añadir `release/` a `.gitignore`.
-- [ ] Copiar a `release/datos-2026/` los ficheros del juego `2026` que se puedan redistribuir (3.4), junto
+- [x] Copiar a `release/data-2026/` los ficheros del juego `2026` que se puedan redistribuir (3.4), junto
       con un `notas.md` con su procedencia, licencias y SHA‑256. **No se publica**: eso se hace en la fase 7.
-- [ ] Rellenar en el manifiesto sus URLs definitivas
-      (`https://github.com/dpgon/DGA/releases/download/datos-2026/<fichero>`). Los ficheros que no se
+      *Decisión del autor: solo los ficheros con licencia clara (PSL, Hugging Face y el corpus propio). Las notas
+      van en `notes.md`, en inglés como las de `v2021`.*
+- [x] Rellenar en el manifiesto sus URLs definitivas
+      (`https://github.com/dpgon/DGA/releases/download/data-2026/<fichero>`). Los ficheros que no se
       redistribuyen llevan la URL de su fuente.
-- [ ] `fetchdata.py --set 2026` instala el juego de datos nuevo; hasta la fase 7, con
-      `--from release/datos-2026`. Por defecto, los ficheros del **modelo** y del diccionario siguen siendo
+      *Tranco (`467YX`) y Umbrella (histórico del 2026-10-17; el del 2026-10-19 aún no estaba publicado) se
+      bajan de su fuente: `fetchdata.py` acepta `URL#miembro` de un zip y `lines:FUENTE:DESDE-HASTA`, que genera
+      los cortes de Tranco como los `sed` del README. Con `--from`, lo que no está en el directorio se obtiene
+      de su URL. Comprobado: los cortes derivados dan los mismos SHA‑256.*
+- [x] `fetchdata.py --set 2026` instala el juego de datos nuevo; hasta la fase 7, con
+      `--from release/data-2026`. Por defecto, los ficheros del **modelo** y del diccionario siguen siendo
       los de `2021` hasta la fase 5.
 - [ ] **Verificar:** en un clon nuevo hecho desde el repositorio local, `fetchdata.py` (por defecto, que
-      descarga de `v2021`) y `fetchdata.py --set 2026 --from <ruta>/release/datos-2026` instalan y
+      descarga de `v2021`) y `fetchdata.py --set 2026 --from <ruta>/release/data-2026` instalan y
       verifican todo, y las pruebas de las fases 1–2 pasan.
 
 **Aceptación de la fase 3:**
@@ -534,7 +541,7 @@ Depende de: el anexo del sondeo (1.6), las fases 2–4 y los datos del juego `20
 - [ ] Actualizar el manifiesto con sus URLs definitivas. El juego por defecto pasa a `2026`; `2021` queda como
       juego histórico.
 - [ ] **Verificar:** en un clon nuevo hecho desde el repositorio local, `fetchdata.py --from
-      <ruta>/release/modelo-2026` y `--from <ruta>/release/datos-2026` dejan `--check` funcionando con el
+      <ruta>/release/modelo-2026` y `--from <ruta>/release/data-2026` dejan `--check` funcionando con el
       modelo nuevo.
 
 ### 5.5 CI en las versiones nuevas
@@ -646,8 +653,8 @@ local. Cada paso requiere el visto bueno del autor en el momento de hacerlo.
       origin/main..main` + `git cat-file --batch-check`) y que `release/` y `ml-data/*` no están versionados.
 
 ### 7.2 Releases
-- [ ] Publicar la release de datos (`gh release create datos-2026 …`) con los ficheros y las notas de
-      `release/datos-2026/`.
+- [ ] Publicar la release de datos (`gh release create data-2026 …`) con los ficheros y las notas de
+      `release/data-2026/`.
 - [ ] Publicar la release del modelo (`gh release create modelo-2026 …`) con `release/modelo-2026/`.
 - [ ] **Verificar:** descargar cada asset (`gh release download`) y comparar su SHA‑256 con
       `ml-data/MANIFEST`.

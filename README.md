@@ -59,6 +59,10 @@ directory of `NLTK_DATA` if it is set. Without `--nltk`, install the corpus your
 $ python -m nltk.downloader -d ~/nltk_data brown
 ```
 
+`python fetchdata.py --set 2026` installs the 2026 data set as well (current Tranco and Umbrella lists, public
+suffix list, DGA domains from Hugging Face). Files that can't be redistributed are downloaded from their original
+source; the details are in `ml-data/MANIFEST`. The bundled model still uses the 2021 data.
+
 The scripts never download anything themselves: if a data file or the corpus is missing, they stop and say
 which command to run.
 

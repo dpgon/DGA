@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import sys
 import urllib.request
+import zipfile
 from os.path import basename, dirname, isfile, join
 
 # Only the standard library: this script runs before the dependencies of detectdga.py are useful
@@ -73,12 +74,74 @@ def download(url, dst):
         shutil.copyfileobj(response, fout, CHUNK)
 
 
+def extract(url, dst):
+    '''
+    Download a zip file and extract one of its members
+    :param url: URL of the zip file followed by #member
+    :param dst: file where the member is saved
+    '''
+    base, member = url.split("#", 1)
+    archive = dst + ".zip"
+    try:
+        download(base, archive)
+        with zipfile.ZipFile(archive) as z, z.open(member) as fin, open(dst, "wb") as fout:
+            shutil.copyfileobj(fin, fout, CHUNK)
+    except (zipfile.BadZipFile, KeyError) as e:
+        raise OSError(f"can't extract {member} from {base}: {e}")
+    finally:
+        if isfile(archive):
+            os.remove(archive)
+
+
+def derive(spec, root, dst):
+    '''
+    Create a domain list from lines of another installed file, as the README does with
+    sed -n 'FIRST,LASTp' SOURCE | cut -d ',' -f 2 (and without the \\r of the Tranco list)
+    :param spec: lines:SOURCE:FIRST-LAST, with SOURCE relative to the repository root
+    :param root: repository root
+    :param dst: file where the list is saved
+    '''
+    _, source, span = spec.split(":")
+    first, last = (int(n) for n in span.split("-"))
+    if not isfile(join(root, source)):
+        raise OSError(f"needs {source}, which is not installed")
+    with open(join(root, source), encoding="utf-8", newline="") as fin, \
+            open(dst, "w", encoding="utf-8", newline="\n") as fout:
+        for number, line in enumerate(fin, 1):
+            if number > last:
+                break
+            if number >= first:
+                line = line.replace("\r", "").rstrip("\n")
+                fout.write((line.split(",")[1] if "," in line else line) + "\n")
+
+
+def obtain(entry, root, local, part):
+    '''
+    Get one file of the manifest into part, from the local directory if it is there, or else from its URL:
+    a plain URL, URL#member of a zip file, or lines:SOURCE:FIRST-LAST of another file
+    :return: description of where it came from
+    '''
+    url = entry["url"]
+    if local and isfile(join(local, basename(entry["file"]))):
+        copyfrom(join(local, basename(entry["file"])), part)
+        return f"copied from {local}"
+    if url.startswith("lines:"):
+        derive(url, root, part)
+        return f"derived from {url}"
+    if "#" in url:
+        extract(url, part)
+        return f"extracted from {url}"
+    download(url, part)
+    return f"downloaded from {url}"
+
+
 def install(entry, root, local=None):
     '''
     Download (or copy from a local directory) one file of the manifest and check its size and SHA-256
     :param entry: manifest entry
     :param root: repository root where the file is installed
-    :param local: directory with the files to copy instead of downloading them, or None
+    :param local: directory with the files to copy instead of downloading them, or None. Files that are not
+                  there are obtained from their URL
     :return: True if the file is installed and verified
     '''
     dst = join(root, entry["file"])
@@ -93,13 +156,8 @@ def install(entry, root, local=None):
 
     os.makedirs(dirname(dst) or ".", exist_ok=True)
     part = dst + ".part"
-    origin = join(local, basename(entry["file"])) if local else entry["url"]
-    print(f"  {entry['file']}: {'copying' if local else 'downloading'} {origin}")
     try:
-        if local:
-            copyfrom(origin, part)
-        else:
-            download(origin, part)
+        print(f"  {entry['file']}: {obtain(entry, root, local, part)}")
     except OSError as e:
         print(Col.ERROR + f"  {entry['file']}: {e}" + Col.END, file=sys.stderr)
         if isfile(part):
@@ -131,7 +189,8 @@ def main():
     parser.add_argument("--set", default="2021",
                         help="data set to install (default 2021, the one the bundled model was trained with)")
     parser.add_argument("--from", dest="local", metavar="DIRECTORY",
-                        help="copy the files from a local directory instead of downloading them")
+                        help="copy the files from a local directory instead of downloading them "
+                             "(files that are not there are still obtained from their URL)")
     parser.add_argument("--nltk", action="store_true",
                         help="also install the NLTK brown corpus (in NLTK_DATA, or ~/nltk_data)")
     parser.add_argument("--manifest", default=MANIFEST, help=f"manifest file (default {MANIFEST})")
