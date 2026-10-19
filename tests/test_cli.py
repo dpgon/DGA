@@ -25,3 +25,22 @@ def test_main_reports_missing_ngram_file(repo_tmp, nltk_data, missing):
     assert proc.returncode != 0
     assert f"ml-data/{missing}" in proc.stdout + proc.stderr
     assert not (repo_tmp / "ml-data" / "main.pkl").exists()
+
+
+@pytest.fixture
+def empty_repo(tmp_path):
+    # A clone that has not run fetchdata.py yet: DGAs/ is there but ml-data/ is empty
+    os.symlink(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "DGAs"),
+               tmp_path / "DGAs")
+    (tmp_path / "ml-data").mkdir()
+    return tmp_path
+
+
+@pytest.mark.parametrize("args", [["--check", "google.com"], ["--test_secondary", "full"],
+                                  ["--test_alexa", "full"]])
+def test_missing_data_asks_for_fetchdata(empty_repo, nltk_data, args):
+    # C8: the data files are no longer in git; without them the scripts must say how to get them
+    proc = run("detectdga.py", *args, cwd=empty_repo)
+    assert proc.returncode != 0
+    assert "python fetchdata.py" in proc.stdout + proc.stderr
+    assert "Traceback" not in proc.stderr

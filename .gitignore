@@ -128,3 +128,11 @@ dmypy.json
 # Pyre type checker
 .pyre/
 .idea
+
+# Data files: downloaded and verified with python fetchdata.py (ml-data/MANIFEST), not kept in git
+ml-data/*
+!ml-data/MANIFEST
+DGAs/wordlist/top-1m.csv
+
+# Local drafts of the data releases, published in TODO.md phase 7
+release/

@@ -252,108 +252,137 @@ Objetivo: que los datos pesados salgan de git y se descarguen verificados, y que
 obtenidos (C8, C7, C3, C4). **El detector sigue funcionando con el modelo de 2021**, descargado de `v2021`.
 
 ### 3.1 Manifiesto y descarga verificada (C8)
-- [ ] Definir el formato de `ml-data/MANIFEST`: TSV con las columnas `fichero`, `url`, `tamaño`, `sha256`,
-      `fuente`, `licencia` y `juego` (`2021` | `2026`). Documentarlo en una cabecera comentada.
-- [ ] Rellenar el manifiesto con los assets de `v2021` (hashes de 0.2), todos en el juego `2021`.
-- [ ] Crear `fetchdata.py` en la raíz, solo con biblioteca estándar (`urllib`, `hashlib`, `argparse`):
+- [x] Definir el formato de `ml-data/MANIFEST`: TSV con las columnas `file`, `url`, `size`, `sha256`,
+      `source`, `license` y `set` (`2021` y/o `2026`, separados por comas). Documentarlo en una cabecera
+      comentada. *Los nombres van en inglés, como la CLI y el código (`CLAUDE.md`); en este documento,
+      «juego» es `set`.*
+- [x] Rellenar el manifiesto con los assets de `v2021` (hashes de 0.2), todos en el juego `2021`.
+- [x] Crear `fetchdata.py` en la raíz, solo con biblioteca estándar (`urllib`, `hashlib`, `argparse`):
   - descarga a `ml-data/` los ficheros del manifiesto;
   - verifica cada SHA‑256 y borra el fichero si no coincide;
   - salta los que ya existen y están verificados;
   - opción `--nltk` que lanza el comando de `nlpdata.py`;
-  - opción `--desde <directorio>`, que copia los ficheros desde un directorio local en lugar de descargarlos,
-    con la misma verificación de SHA‑256. Es lo que permite probar los juegos nuevos antes de publicarlos.
-- [ ] Escribir `tests/test_fetchdata.py` con un servidor `http.server` local:
+  - opción `--from <directorio>` (en el diseño, `--desde`), que copia los ficheros desde un directorio local
+    en lugar de descargarlos, con la misma verificación de SHA‑256. Es lo que permite probar los juegos nuevos antes de publicarlos.
+- [x] Escribir `tests/test_fetchdata.py` con un servidor `http.server` local:
   - un fichero correcto se descarga y se verifica;
   - un hash incorrecto da un código de salida distinto de 0 y no deja el fichero;
   - una segunda ejecución no descarga nada;
-  - `--desde` con un fichero correcto lo instala, y con uno alterado falla.
-- [ ] Escribir antes en `tests/test_cli.py`: con `ml-data/` vacío en `repo_tmp`, `--check google.com` termina
+  - `--from` con un fichero correcto lo instala, y con uno alterado falla.
+- [x] Escribir antes en `tests/test_cli.py`: con `ml-data/` vacío en `repo_tmp`, `--check google.com` termina
       con un mensaje que dice que hay que ejecutar `python fetchdata.py` y con un código distinto de 0. Debe
       fallar.
-- [ ] Implementar ese mensaje en `detectdga.py`: comprobar los ficheros necesarios antes de cargarlos en
+- [x] Implementar ese mensaje en `detectdga.py`: comprobar los ficheros necesarios antes de cargarlos en
       `testdomains`, `testsecdata` y `traindata`.
-- [ ] `.gitignore`: añadir `ml-data/*` y `!ml-data/MANIFEST`.
-- [ ] Retirar del índice los ficheros de `ml-data/` salvo el manifiesto: `git rm --cached ml-data/*.pkl
+- [x] `.gitignore`: añadir `ml-data/*` y `!ml-data/MANIFEST`.
+- [x] Retirar del índice los ficheros de `ml-data/` salvo el manifiesto: `git rm --cached ml-data/*.pkl
       ml-data/*.dom ml-data/tranco.ng*`. Siguen en `v2021`.
-- [ ] Actualizar la CI (1.7): `python fetchdata.py` con caché de `ml-data/` indexada por el hash de
+- [x] Actualizar la CI (1.7): `python fetchdata.py` con caché de `ml-data/` indexada por el hash de
       `ml-data/MANIFEST`. Probarlo con `act`; la caché real de GitHub solo se comprueba en la fase 7.
-- [ ] **Verificar:** en un clon nuevo hecho desde el repositorio local, en un directorio temporal, que descarga
+- [x] **Verificar:** en un clon nuevo hecho desde el repositorio local, en un directorio temporal, que descarga
       los assets de `v2021` (ya publicados), `python fetchdata.py --nltk` seguido de
       `pytest -m "model or not model"` pasa, y `--check` con los cinco dominios del README da los mismos
       veredictos.
-- [ ] Actualizar `README.md` («Install»): el paso `python fetchdata.py --nltk` tras instalar las dependencias,
+- [x] Actualizar `README.md` («Install»): el paso `python fetchdata.py --nltk` tras instalar las dependencias,
       y que clonar ya no basta.
-- [ ] Actualizar `CLAUDE.md`:
+- [x] Actualizar `CLAUDE.md`:
   - regla 13: los ficheros de `ml-data/` se descargan; antes de regenerarlos, comprobar el juego con el
     manifiesto;
   - regla 15: los datos se cambian a través del manifiesto, no a mano;
   - mapa de directorios.
 
 ### 3.2 Lista de sufijos nueva, preparada y sin activar (C7)
-- [ ] Hacer configurable la ruta de `loadetlds()` (`detectdga.py:28-66`), con la ruta actual por defecto,
+- [x] Hacer configurable la ruta de `loadetlds()` (`detectdga.py:28-66`), con la ruta actual por defecto,
       para poder probar con otras listas.
-- [ ] Escribir `tests/test_sldtld.py`, parametrizado por lista:
+- [x] Escribir `tests/test_sldtld.py`, parametrizado por lista:
   - sufijos de varios niveles (`example.co.uk`);
   - sufijos privados (`uquslaigwaannie.ddns.net`);
   - SLD de 3 caracteres (`bbc.com` → descartado);
   - un sufijo presente solo en la lista nueva: aceptado con la nueva y rechazado con la de 2021.
-- [ ] Descargar `https://publicsuffix.org/list/public_suffix_list.dat` y anotar fecha y SHA‑256.
-- [ ] Añadirla al juego `2026` del manifiesto como `ml-data/public_suffix_list.dat`. **No sustituir todavía**
+- [x] Descargar `https://publicsuffix.org/list/public_suffix_list.dat` y anotar fecha y SHA‑256.
+- [x] Añadirla al juego `2026` del manifiesto como `ml-data/public_suffix_list.dat`. **No sustituir todavía**
       `DGAs/wordlist/effective_tld_names.dat`: el modelo de 2021 necesita la lista de 2021 (ver 5.3).
 
 ### 3.3 Dominios legítimos actuales (C3)
-- [ ] Elegir la lista Tranco más reciente en el momento de implementarlo
+- [x] Elegir la lista Tranco más reciente en el momento de implementarlo
       (`https://tranco-list.eu/api/lists/date/latest`) y anotar su ID. La comprobada en el diseño es la
       `8PX8V`.
-- [ ] Descargar la lista **completa** (`https://tranco-list.eu/list/<ID>/full`) como `ml-data/tranco.csv`.
-- [ ] Generar `tranco-main.dom`, `tranco-test2.dom` y `tranco-ngram.dom` con los tres `sed` del README,
+      *Hecho el 2026-10-19: lista `467YX` (2026-09-19 a 2026-10-18), 4.595.070 dominios.*
+- [x] Descargar la lista **completa** (`https://tranco-list.eu/list/<ID>/full`) como `ml-data/tranco.csv`.
+- [x] Generar `tranco-main.dom`, `tranco-test2.dom` y `tranco-ngram.dom` con los tres `sed` del README,
       quitando los `\r`.
-- [ ] Escribir `tests/test_data.py` (marcador `slow`): los tres ficheros no comparten ningún dominio, y sus
+      *Van en `ml-data/2026/`, no en `ml-data/`: se llaman igual que los de 2021, la fase 4 necesita los dos
+      juegos a la vez y `fetchdata.py` nunca sobrescribe un fichero distinto. Lo mismo vale para
+      `mydgas.dom` (3.4). Los ficheros sin nombre repetido quedan en `ml-data/`.*
+- [x] Escribir `tests/test_data.py` (marcador `slow`): los tres ficheros no comparten ningún dominio, y sus
       tamaños y hashes coinciden con el manifiesto.
-- [ ] Añadir al juego `2026` del manifiesto `tranco.csv` y los tres `.dom`, con el ID Tranco en la columna
+- [x] Añadir al juego `2026` del manifiesto `tranco.csv` y los tres `.dom`, con el ID Tranco en la columna
       `fuente`.
-- [ ] Descargar Cisco Umbrella top‑1M (`http://s3-us-west-1.amazonaws.com/umbrella-static/top-1m.csv.zip`),
+- [x] Descargar Cisco Umbrella top‑1M (`http://s3-us-west-1.amazonaws.com/umbrella-static/top-1m.csv.zip`),
       descomprimirlo como `ml-data/umbrella-raw.csv` y anotar la fecha y el SHA‑256 en el manifiesto. La
       reducción a dominios registrables se hace en la fase 4.
-- [ ] `statsdga.py`: cambiar las seis lecturas de `DGAs/wordlist/top-1m.csv` (`statsdga.py:110,145,183,220,
+- [x] `statsdga.py`: cambiar las seis lecturas de `DGAs/wordlist/top-1m.csv` (`statsdga.py:110,145,183,220,
       260,543`) por `ml-data/tranco.csv`, que tiene el mismo formato `rango,dominio`, definido como una
       constante. Cambiar los textos «Alexa top million» del menú por «Tranco».
-- [ ] Actualizar la prueba 1.5 si cambia algún valor que dependa de la lista. La opción 1 no depende de ella.
-- [ ] Retirar `DGAs/wordlist/top-1m.csv` del árbol (`git rm`); sigue en `v2021`. `checkdomains()`, que es
+      *Como `tranco.csv` solo está en el juego `2026`, si falta, `statsdga.py` pide
+      `python fetchdata.py --set 2026`.*
+- [x] Actualizar la prueba 1.5 si cambia algún valor que dependa de la lista. La opción 1 no depende de ella.
+      *No cambió ningún valor; se añadieron dos pruebas de las ramas con Tranco.*
+- [x] Retirar `DGAs/wordlist/top-1m.csv` del árbol (`git rm`); sigue en `v2021`. `checkdomains()`, que es
       código muerto, también lo lee: añadir un comentario que lo señale.
 
 ### 3.4 Dominios DGA (C4)
-- [ ] Mantener `ml-data/dga.dom` de 2021 en **los dos** juegos del manifiesto, con el mismo hash y la fuente
+- [x] Mantener `ml-data/dga.dom` de 2021 en **los dos** juegos del manifiesto, con el mismo hash y la fuente
       «360 Netlab, 2021».
-- [ ] Descargar el dataset `harpomaxx/dga-detection` de Hugging Face. Comprobar su formato y quedarse solo
+- [x] Descargar el dataset `harpomaxx/dga-detection` de Hugging Face. Comprobar su formato y quedarse solo
       con las filas etiquetadas como DGA.
-- [ ] Convertirlo a `ml-data/hf-dga.dom` con el formato de `dga.dom` (`familia<TAB>dominio`). Anotar en el
+      *Revisión `26ab213`, 1.915.335 dominios DGA de 51 etiquetas. **No son datos recientes:** el dataset (2023)
+      recoge dominios de Andrey Abakumov y John Bambenek con fecha de 2016 (1.212.756), de 1970 como relleno
+      (115.688) o sin fecha (586.891). Hay valores que no son dominios (p. ej., IP en `tinba`): se tratan en la
+      fase 4.*
+- [x] Convertirlo a `ml-data/hf-dga.dom` con el formato de `dga.dom` (`familia<TAB>dominio`). Anotar en el
       manifiesto la revisión del dataset, el SHA‑256 y la licencia CC BY 2.0.
-- [ ] Regenerar el corpus propio, ya limpio gracias a 2.2: `python lookdga.py -d 2026-10-18 -n 3000 -C >
+- [x] Regenerar el corpus propio, ya limpio gracias a 2.2: `python lookdga.py -d 2026-10-18 -n 3000 -C >
       ml-data/mydgas.dom`. Anotar la fecha usada en el manifiesto (juego `2026`).
-- [ ] **Licencias:** comprobar y anotar en la columna `licencia` si se pueden redistribuir:
+      *Va en `ml-data/2026/mydgas.dom` (3.3) y se generó con `TZ=UTC`. **Hallazgo:** tiene 150.000 filas
+      (3.000 por familia), y el `mydgas.dom` de 2021, 504.000 (3.000 por cada una de las 168 configuraciones).
+      El código publicado, en `v2021` y hoy, genera 150.000 con ese comando, y su modo «por configuración»
+      (`dga.create(..., configs=1)`) falla con `UnboundLocalError` (`first` sin definir). El corpus de 2021
+      salió, pues, de un código que no está en el repositorio. Tenerlo en cuenta al comparar en la fase 4.*
+- [x] **Licencias:** comprobar y anotar en la columna `licencia` si se pueden redistribuir:
   - la lista Tranco;
   - los términos de Cisco Umbrella;
   - la CC BY 2.0 de Hugging Face (exige atribución);
   - el feed de 360 Netlab.
   Si alguna no permite redistribuir, ese fichero **no se sube** como asset. El manifiesto lleva entonces la
   URL original y `fetchdata.py` lo descarga de su fuente.
+      *Revisado el 2026-10-19, resultado en la columna `license`: Hugging Face CC BY 2.0 y PSL MPL‑2.0 permiten
+      redistribuir. Tranco no declara licencia y mezcla fuentes con términos distintos (Cloudflare Radar es
+      CC BY‑NC 4.0). Umbrella solo dice «free of charge». Netlab no publica términos. **Qué se sube en
+      `data-2026` lo decide el autor** (3.5).*
 - [ ] **Fuera del código:** enviar a Fraunhofer FKIE la solicitud de acceso a DGArchive. Anotar la fecha y la
       respuesta en `docs/FUTURE.md` §1.2.1.
 
 ### 3.5 Borrador local de la release de datos 2026
-- [ ] Elegir el nombre definitivo de la release (propuesta: `datos-2026`).
-- [ ] Añadir `release/` a `.gitignore`.
-- [ ] Copiar a `release/datos-2026/` los ficheros del juego `2026` que se puedan redistribuir (3.4), junto
+- [x] Elegir el nombre definitivo de la release (propuesta: `data-2026`).
+      *El autor eligió `data-2026` (en inglés, como `v2021`).*
+- [x] Añadir `release/` a `.gitignore`.
+- [x] Copiar a `release/data-2026/` los ficheros del juego `2026` que se puedan redistribuir (3.4), junto
       con un `notas.md` con su procedencia, licencias y SHA‑256. **No se publica**: eso se hace en la fase 7.
-- [ ] Rellenar en el manifiesto sus URLs definitivas
-      (`https://github.com/dpgon/DGA/releases/download/datos-2026/<fichero>`). Los ficheros que no se
+      *Decisión del autor: solo los ficheros con licencia clara (PSL, Hugging Face y el corpus propio). Las notas
+      van en `notes.md`, en inglés como las de `v2021`.*
+- [x] Rellenar en el manifiesto sus URLs definitivas
+      (`https://github.com/dpgon/DGA/releases/download/data-2026/<fichero>`). Los ficheros que no se
       redistribuyen llevan la URL de su fuente.
-- [ ] `fetchdata.py --juego 2026` instala el juego de datos nuevo; hasta la fase 7, con
-      `--desde release/datos-2026`. Por defecto, los ficheros del **modelo** y del diccionario siguen siendo
+      *Tranco (`467YX`) y Umbrella (histórico del 2026-10-17; el del 2026-10-19 aún no estaba publicado) se
+      bajan de su fuente: `fetchdata.py` acepta `URL#miembro` de un zip y `lines:FUENTE:DESDE-HASTA`, que genera
+      los cortes de Tranco como los `sed` del README. Con `--from`, lo que no está en el directorio se obtiene
+      de su URL. Comprobado: los cortes derivados dan los mismos SHA‑256.*
+- [x] `fetchdata.py --set 2026` instala el juego de datos nuevo; hasta la fase 7, con
+      `--from release/data-2026`. Por defecto, los ficheros del **modelo** y del diccionario siguen siendo
       los de `2021` hasta la fase 5.
-- [ ] **Verificar:** en un clon nuevo hecho desde el repositorio local, `fetchdata.py` (por defecto, que
-      descarga de `v2021`) y `fetchdata.py --juego 2026 --desde <ruta>/release/datos-2026` instalan y
+- [x] **Verificar:** en un clon nuevo hecho desde el repositorio local, `fetchdata.py` (por defecto, que
+      descarga de `v2021`) y `fetchdata.py --set 2026 --from <ruta>/release/data-2026` instalan y
       verifican todo, y las pruebas de las fases 1–2 pasan.
 
 **Aceptación de la fase 3:**
@@ -511,8 +540,8 @@ Depende de: el anexo del sondeo (1.6), las fases 2–4 y los datos del juego `20
       `tranco.ng*.csv` y un `notas.md` con las métricas y los SHA‑256. **No se publica** hasta la fase 7.
 - [ ] Actualizar el manifiesto con sus URLs definitivas. El juego por defecto pasa a `2026`; `2021` queda como
       juego histórico.
-- [ ] **Verificar:** en un clon nuevo hecho desde el repositorio local, `fetchdata.py --desde
-      <ruta>/release/modelo-2026` y `--desde <ruta>/release/datos-2026` dejan `--check` funcionando con el
+- [ ] **Verificar:** en un clon nuevo hecho desde el repositorio local, `fetchdata.py --from
+      <ruta>/release/modelo-2026` y `--from <ruta>/release/data-2026` dejan `--check` funcionando con el
       modelo nuevo.
 
 ### 5.5 CI en las versiones nuevas
@@ -524,7 +553,7 @@ Depende de: el anexo del sondeo (1.6), las fases 2–4 y los datos del juego `20
 - [ ] **Verificar Linux en local:** `act` ejecuta los trabajos de Ubuntu con 3.12 y 3.13 en verde. `act` solo
       ejecuta contenedores Linux.
 - [ ] **Verificar macOS arm64 en local:** en la máquina del autor, sin Rosetta, con 3.12 y 3.13:
-      `pip install -r requirements-lock.txt -r requirements-dev.txt`, `fetchdata.py --desde …` y `pytest`
+      `pip install -r requirements-lock.txt -r requirements-dev.txt`, `fetchdata.py --from …` y `pytest`
       pasan.
 - [ ] **Windows:** no se puede verificar en local. Queda para la fase 7, con estas comprobaciones:
   - las rutas `ml-data/…` y `DGAs/wordlist/…` funcionan;
@@ -624,8 +653,8 @@ local. Cada paso requiere el visto bueno del autor en el momento de hacerlo.
       origin/main..main` + `git cat-file --batch-check`) y que `release/` y `ml-data/*` no están versionados.
 
 ### 7.2 Releases
-- [ ] Publicar la release de datos (`gh release create datos-2026 …`) con los ficheros y las notas de
-      `release/datos-2026/`.
+- [ ] Publicar la release de datos (`gh release create data-2026 …`) con los ficheros y las notas de
+      `release/data-2026/`.
 - [ ] Publicar la release del modelo (`gh release create modelo-2026 …`) con `release/modelo-2026/`.
 - [ ] **Verificar:** descargar cada asset (`gh release download`) y comparar su SHA‑256 con
       `ml-data/MANIFEST`.
@@ -639,7 +668,7 @@ local. Cada paso requiere el visto bueno del autor en el momento de hacerlo.
 - [ ] Comprobar que la caché de `ml-data/` de la CI funciona: la segunda ejecución no vuelve a descargar.
 
 ### 7.4 Comprobación final
-- [ ] En un clon nuevo **desde GitHub**, sin `--desde`: instalar con `requirements-lock.txt`,
+- [ ] En un clon nuevo **desde GitHub**, sin `--from`: instalar con `requirements-lock.txt`,
       `python fetchdata.py --nltk`, `pytest` y el ejemplo `--check` del README.
 - [ ] Comprobar que el enlace de las notas de `v2021` a `docs/MVP.md` en `main` funciona.
 - [ ] Borrar los borradores locales de `release/`, una vez verificadas las releases publicadas.
