@@ -307,6 +307,11 @@ y `tiny` 0,936.
 - Siguen valiendo las advertencias de la fase 4: no hay dominios DGA reales posteriores a 2021, y la exclusión
   es estricta por SLD.
 
+**Reproducibilidad (verificado):** la cadena completa, repetida en un clon nuevo con Python 3.13.16 y desde
+los ficheros del manifiesto, da el mismo diccionario de n-gramas (mismo SHA‑256), los mismos recuentos de
+exclusión y las mismas matrices de confusión de `full` en el secundario y en Umbrella. Los `.skops` cambian de
+SHA‑256 de una ejecución a otra; **suposición:** guardan datos variables, como fechas.
+
 **Tiempos** (Apple Silicon nativo, 12 núcleos): `--ngram`, 19 s; `--main`, 5 min 40 s (2.904.183 dominios);
 `--secondary`, 3 min 54 s; `--umbrella`, 23 s; `--train full`, 33 s; `--train tiny`, 9 s; cada evaluación,
 entre 2 y 5 s. Bajo Rosetta, en la fase 4, `--secondary` tardó 34 min.
@@ -388,7 +393,7 @@ No se cuentan como entregadas hasta verificarlas.
 
 | Función | Orden | Estado |
 |---|---|---|
-| Entrenar las variantes `ngram`, `nongram`, `nosyll` y `nongramnosyll` | `detectdga.py --train …` | Solo se han entrenado y medido `full` y `tiny` |
+| Entrenar las variantes `nongram`, `nosyll` y `nongramnosyll` | `detectdga.py --train …` | Se han entrenado y medido `full`, `tiny` y `ngram`. `ngram`, en un clon de prueba: exactitud 0,965 en su partición, y en el secundario 3,7 % de falsos positivos y 80,3 % de DGA detectados; no se publica |
 | Estadística de alfabeto y patrón | `statsdga.py`, opción 3 | Los patrones de las fichas pudieron salir de aquí (suposición) |
 
 **Verificado desde la primera medición:** `--ngram`, `--main`, `--secondary`, `--umbrella`, `--train full`,

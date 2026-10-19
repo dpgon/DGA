@@ -88,9 +88,10 @@ y obtiene métricas que se pueden reproducir, con sus límites documentados.
   - el repositorio publica las métricas de cada variante del modelo, con el procedimiento para
     reproducirlas.
 - **Casos límite:** sustituir Alexa, retirado en 2022, por una fuente legítima vigente.
-- **Estado (2026-10-19): hecho para `full` y `tiny`.** `--secondary` funciona (C6); los conjuntos excluyen
+- **Estado (2026-10-19): hecho para `full` y `tiny`, que se publican.** `--secondary` funciona (C6); los conjuntos excluyen
   los dominios y SLD del entrenamiento y lo comprueban al construirse (C5); Umbrella sustituye a Alexa (C3).
-  Las métricas de los modelos de 2021 y 2026 están en `docs/MVP.md`. Las otras variantes no se han medido.
+  Las métricas de los modelos de 2021 y 2026 están en `docs/MVP.md`. De las otras variantes, solo `ngram` se
+  ha medido, en una prueba sin publicar.
 
 ### 1.1.7 Reproducir el entrenamiento completo
 - **Origen:** [deducido] `--ngram`, `--main`, `--alexa`, `--train` y la opción 3 de estadísticas están sin
@@ -98,9 +99,11 @@ y obtiene métricas que se pueden reproducir, con sus límites documentados.
 - **Aceptación:** desde las fuentes documentadas, la cadena completa (diccionario → conjuntos → entrenamiento
   → evaluación) se ejecuta de principio a fin y da métricas iguales a las publicadas, dentro de un margen
   declarado. Se documenta cuánto tarda.
-- **Estado (2026-10-19): hecho una vez.** La cadena completa se ejecutó en la fase 5, con tiempos medidos
-  (unos 11 minutos en Apple Silicon). No se ha repetido para comprobar que da las mismas métricas; la opción 3
-  de estadísticas sigue sin ejecutar.
+- **Estado (2026-10-19): hecho para `full`.** La cadena completa se ejecutó en la fase 5 (unos 11 minutos en
+  Apple Silicon) y se repitió en un clon nuevo, con Python 3.13 en lugar de 3.12: el diccionario de n-gramas
+  sale idéntico byte a byte, y `full` da las mismas matrices de confusión en las tres evaluaciones. Los
+  ficheros `.skops` no son idénticos byte a byte (**suposición:** guardan datos variables, como fechas). La
+  opción 3 de estadísticas sigue sin ejecutar.
 
 ### 1.1.8 Fidelidad de los generadores
 - **Origen:** [deducido] solo 11 de 50 variantes tienen confirmación externa (`docs/MVP.md` §3); [usuario]
