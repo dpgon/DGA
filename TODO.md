@@ -513,7 +513,7 @@ Depende de: el anexo del sondeo (1.6), las fases 2–4 y los datos del juego `20
       `tranco.ng*.csv` y un `notas.md` con las métricas y los SHA‑256. **No se publica** hasta la fase 7.
 - [ ] Actualizar el manifiesto con sus URLs definitivas. El juego por defecto pasa a `2026`; `2021` queda como
       juego histórico.
-- [ ] **Verificar:** en un clon nuevo hecho desde el repositorio local, `fetchdata.py --desde
+- [ ] **Verificar:** en un clon nuevo hecho desde el repositorio local, `fetchdata.py --from
       <ruta>/release/modelo-2026` y `--from <ruta>/release/datos-2026` dejan `--check` funcionando con el
       modelo nuevo.
 
@@ -526,7 +526,7 @@ Depende de: el anexo del sondeo (1.6), las fases 2–4 y los datos del juego `20
 - [ ] **Verificar Linux en local:** `act` ejecuta los trabajos de Ubuntu con 3.12 y 3.13 en verde. `act` solo
       ejecuta contenedores Linux.
 - [ ] **Verificar macOS arm64 en local:** en la máquina del autor, sin Rosetta, con 3.12 y 3.13:
-      `pip install -r requirements-lock.txt -r requirements-dev.txt`, `fetchdata.py --desde …` y `pytest`
+      `pip install -r requirements-lock.txt -r requirements-dev.txt`, `fetchdata.py --from …` y `pytest`
       pasan.
 - [ ] **Windows:** no se puede verificar en local. Queda para la fase 7, con estas comprobaciones:
   - las rutas `ml-data/…` y `DGAs/wordlist/…` funcionan;
@@ -641,7 +641,7 @@ local. Cada paso requiere el visto bueno del autor en el momento de hacerlo.
 - [ ] Comprobar que la caché de `ml-data/` de la CI funciona: la segunda ejecución no vuelve a descargar.
 
 ### 7.4 Comprobación final
-- [ ] En un clon nuevo **desde GitHub**, sin `--desde`: instalar con `requirements-lock.txt`,
+- [ ] En un clon nuevo **desde GitHub**, sin `--from`: instalar con `requirements-lock.txt`,
       `python fetchdata.py --nltk`, `pytest` y el ejemplo `--check` del README.
 - [ ] Comprobar que el enlace de las notas de `v2021` a `docs/MVP.md` en `main` funciona.
 - [ ] Borrar los borradores locales de `release/`, una vez verificadas las releases publicadas.
