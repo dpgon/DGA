@@ -360,8 +360,10 @@ obtenidos (C8, C7, C3, C4). **El detector sigue funcionando con el modelo de 202
       redistribuir. Tranco no declara licencia y mezcla fuentes con términos distintos (Cloudflare Radar es
       CC BY‑NC 4.0). Umbrella solo dice «free of charge». Netlab no publica términos. **Qué se sube en
       `data-2026` lo decide el autor** (3.5).*
-- [ ] **Fuera del código:** enviar a Fraunhofer FKIE la solicitud de acceso a DGArchive. Anotar la fecha y la
-      respuesta en `docs/FUTURE.md` §1.2.1.
+- [x] ~~**Fuera del código:** enviar a Fraunhofer FKIE la solicitud de acceso a DGArchive. Anotar la fecha y la
+      respuesta en `docs/FUTURE.md` §1.2.1.~~
+      *Descartado por el autor (2026-10-19): de momento no se pide acceso. La actualización sigue sin datos DGA
+      reales posteriores a 2021; los de Hugging Face son de 2016 o sin fecha (ver arriba).*
 
 ### 3.5 Borrador local de la release de datos 2026
 - [x] Elegir el nombre definitivo de la release (propuesta: `data-2026`).
@@ -390,8 +392,8 @@ obtenidos (C8, C7, C3, C4). **El detector sigue funcionando con el modelo de 202
 - un clon nuevo con `python fetchdata.py --nltk` deja el detector de 2021 funcionando con los mismos
   veredictos;
 - los datos nuevos (Tranco con ID, Umbrella, Hugging Face, corpus propio, lista de sufijos) están descargados,
-  verificados y registrados en el manifiesto con su licencia;
-- la solicitud a DGArchive está enviada.
+  verificados y registrados en el manifiesto con su licencia.
+- ~~la solicitud a DGArchive está enviada.~~ Descartado por el autor (2026-10-19).
 
 ---
 
@@ -610,7 +612,7 @@ actualizar»). En la voz y el idioma de cada documento: `README.md` en inglés, 
   - §11 decisiones D1–D7;
   - §12 marcar la deuda resuelta (1, 2, 3, 4 en parte, 5, 12, 14, 15, 16).
 - [ ] `docs/FUTURE.md`: marcar como hechas las partes de 1.1.1, 1.1.2, 1.1.3 (alineación), 1.1.6, 1.1.7 y
-      1.1.9 (CSV de `-C`) que cubre esta corrección. Dejar 1.2.1 con el estado de DGArchive.
+      1.1.9 (CSV de `-C`) que cubre esta corrección. Anotar en 1.2.1 que no se ha pedido acceso a DGArchive (decisión del autor, 2026-10-19).
 - [ ] `docs/ESTUDIO.md`: añadir al principio una nota que diga que es la foto de 2021 y remita a
       `docs/CORRECCIONES.md`. No cambiar nada más.
 - [ ] `docs/CORRECCIONES.md`: añadir el estado «Implementado» con la fecha y la versión, y las desviaciones
@@ -691,7 +693,7 @@ local. Cada paso requiere el visto bueno del autor en el momento de hacerlo.
 | 5 | 1.6, 2, 3, 4 | Las roturas de API salen del sondeo; las métricas de 2021 (4.4) son la base de comparación |
 | 6 | 5 | Documenta el estado final. Las notas del README de cada fase ya se actualizan en su fase |
 | 7 | 6 | Solo se publica cuando todo está terminado y documentado (decisión del autor) |
-| — | Externa: DGArchive | No bloquea ninguna fase; su respuesta solo se anota (3.4) |
+| — | ~~Externa: DGArchive~~ | Descartada por el autor (2026-10-19): no se pide acceso de momento |
 
 ## Cobertura del diseño
 

@@ -201,6 +201,9 @@ Ver «Lo que no se arregla ahora».
     `dga.dom` (C5).
   - **Datos recientes:** se solicita acceso a DGArchive en paralelo. Si se concede, se usarán para medir el
     envejecimiento y reentrenar en una corrección posterior. Esto no bloquea esta.
+    *Actualización 2026-10-19: el autor decide no pedir acceso de momento. Además, los dominios de Hugging
+    Face resultaron ser de 2016 o sin fecha, así que la evaluación no tendrá datos DGA reales posteriores a
+    2021. Las métricas deben decirlo.*
   - **Prueba secundaria:** el corpus de los generadores propios (`lookdga.py -C`, C13) con fechas de
     2025–2026. Se usa solo para evaluar, nunca para entrenar, porque sería circular y 39 de los 50 generadores
     no están verificados.
