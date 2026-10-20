@@ -737,7 +737,9 @@ local. Cada paso requiere el visto bueno del autor en el momento de hacerlo.
 - [x] Comprobar que el enlace de las notas de `v2021` a `docs/MVP.md` en `main` funciona.
   *Hecho: las notas citan `docs/MVP.md`, `docs/CORRECCIONES.md` y `TODO.md` de `main` como texto; los tres
   existen en GitHub.*
-- [ ] Borrar los borradores locales de `release/`, una vez verificadas las releases publicadas.
+- [x] Borrar los borradores locales de `release/`, una vez verificadas las releases publicadas.
+  *Hecho (2026-10-20), tras verificar los assets publicados. La etiqueta `v2026` está sobre `c66bd60`, con
+  la CI en verde en los seis trabajos.*
 
 **Aceptación de la fase 7:**
 - `main`, las releases de datos y de modelo y sus assets están en GitHub y sus hashes coinciden;
