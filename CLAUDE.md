@@ -44,7 +44,7 @@ ml-data/        MANIFEST en git; listas, tranco.ng1-4.csv y full/tiny .skops/.js
                 (juego 2026 en ml-data/ y ml-data/2026/; juego 2021 con los nombres de entonces)
 tests/          pytest; conftest.py fija TZ=UTC; data/ con la instantánea de generadores y la referencia Netlab
 .github/        workflows/tests.yml: matriz Ubuntu, macOS y Windows × Python 3.12 y 3.13
-release/        borradores locales de las releases data-2026 y model-2026 (ignorado; se publican en la fase 7)
+release/        ignorado; ahí se preparan los borradores locales de las releases antes de publicarlas
 requirements*.txt  directas con versión mínima, lock exacto (requirements-lock.txt) y pytest (-dev)
 yara/           35 reglas de Malpedia, hoy sin uso en el código
 docs/           documentación de la puesta a punto (en español)
@@ -97,7 +97,7 @@ docs/           documentación de la puesta a punto (en español)
   - **Las pruebas se ejecutan en UTC** (`tests/conftest.py` fija `TZ=UTC`). pykspa2 y suppobox usan
     `time.mktime`, que trabaja en hora local, y dan dominios distintos según la zona horaria de la máquina. Si
     regeneras la instantánea, hazlo con `TZ=UTC`.
-- **CI en local** con `act` (no se sube nada a GitHub durante la actualización). Hace falta pasarle el
+- **CI en local** con `act`, para probar antes de subir. Hace falta pasarle el
   `PATH` de la imagen, porque `act` lo pierde cuando `setup-python` añade sus rutas y entonces las acciones
   de Node, como `actions/cache`, no encuentran `node`:
   ```bash
@@ -106,8 +106,8 @@ docs/           documentación de la puesta a punto (en español)
     --env PATH=/opt/acttoolcache/node/24.19.0/x64/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
   ```
   `act` solo ejecuta los trabajos de Linux de la matriz. `--bind` monta el repositorio en vez de copiarlo, para
-  que el contenedor vea `ml-data/`: hasta la fase 7 las releases `model-2026` y `data-2026` no están
-  publicadas y `fetchdata.py` no puede descargarlas.
+  que el contenedor vea `ml-data/`, y así probar un manifiesto con releases que aún no se han publicado. La CI
+  de GitHub solo se ejecuta al subir ramas, no etiquetas.
 - Lo que las pruebas no cubren, compruébalo a mano con los criterios de `docs/MVP.md`. Di qué ejecutaste y qué
   viste; lo que no ejecutaste, llámalo «no verificado».
 
@@ -137,8 +137,11 @@ Respeta el estilo existente aunque no sea el ideal. Las mejoras de estilo van en
 - Mensajes cortos en inglés, en tercera persona del presente y con mayúscula inicial
   (`Updates readme, requirements and gitignore (.idea)`). Sigue ese formato.
 - No hagas commit ni push sin que lo pida el usuario. Si se trabaja en algo grande, usa una rama.
-- **Mientras dure la actualización de `TODO.md`, no se sube nada a GitHub**: ni push, ni etiquetas, ni
-  releases. Todo se publica de una vez en su fase 7 (decisión del autor, 2026-10-18).
+- La actualización de `TODO.md` se publicó el 2026-10-20 (etiqueta `v2026`, releases `data-2026` y `model-2026`).
+  Mientras duró, no se subió nada a GitHub. Publicar (push, etiquetas, releases) sigue requiriendo el visto bueno
+  del autor en cada paso.
+- Una release de datos o de modelo se publica **antes** que el commit del manifiesto que la usa: primero la
+  etiqueta y la release con sus assets, después el push de la rama. Si no, la CI falla al descargarlos.
 - No subas ficheros de más de 100 MB: GitHub los rechaza, y el `full.pkl` de 2021 ya pesaba 99,9 MB.
 
 ## Reglas propias, fáciles de incumplir
