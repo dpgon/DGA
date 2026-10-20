@@ -3,8 +3,8 @@
 > Diseño acordado con el autor el 2026-10-18. Se apoya en `docs/ESTUDIO.md`, `docs/MVP.md` y
 > `docs/ARCHITECTURE.md`. Las comprobaciones de fuentes externas citadas se hicieron ese mismo día.
 >
-> **Estado: implementado** el 2026-10-19, en las fases 0–5 de `TODO.md` (rama `main`, commit `96e4046`, en local;
-> se publica en la fase 7). Las desviaciones respecto a este diseño están en «Implementación y desviaciones», al
+> **Estado: implementado** el 2026-10-19, en las fases 0–5 de `TODO.md` (commit `96e4046`), y publicado el
+> 2026-10-20 (etiqueta `v2026`, releases `data-2026` y `model-2026`). Las desviaciones respecto a este diseño están en «Implementación y desviaciones», al
 > final del documento. Las referencias de línea de cada corrección son las del código de 2021.
 
 ## Qué se va a corregir
@@ -522,8 +522,11 @@ La fase 0 creó la etiqueta `v2021` y su release (D7), y la fase 1, las pruebas 
   - Las releases nuevas se llaman `data-2026` y `model-2026`, en inglés; solo `data-2026` lleva datos de
     terceros, y solo los que tienen licencia clara. Tranco y Umbrella se descargan de su origen.
   - `detectdga.py --ngram`, `--main`, `--secondary` y `--umbrella` aceptan `--set`.
-- **CI.** Se comprobó en local: Linux con `act --bind` (las releases nuevas aún no están publicadas) y macOS
-  Apple Silicon. Windows queda sin verificar hasta la fase 7.
+- **CI.** Antes de publicar se comprobó en local: Linux con `act --bind` (las releases nuevas aún no estaban
+  publicadas) y macOS Apple Silicon. En GitHub, Windows falló al principio: git convertía
+  `DGAs/wordlist/effective_tld_names.dat` a CRLF y su SHA‑256 dejaba de coincidir. Se corrigió con un
+  `.gitattributes` que saca los ficheros de datos byte a byte, y los seis trabajos pasan (2026-10-20). La CI ya
+  no se ejecuta al subir etiquetas, para poder publicar las releases antes que el commit que las usa.
 
 ## Anexo: resultados del sondeo de compatibilidad (2026-10-18)
 
@@ -613,4 +616,6 @@ Consecuencias:
 Las pruebas fijan `TZ=UTC` (`tests/conftest.py`), y la instantánea se regeneró en UTC; antes estaba en CEST.
 Queda **fuera del alcance**, como el hallazgo anterior. Hay que decidir qué zona horaria es la correcta para
 cada familia (la de la víctima, UTC…) cuando se aborde la fuerza bruta (`docs/FUTURE.md` §1.1.5). En Windows,
-`time.tzset()` no existe: comprobarlo en la fase 7.
+`time.tzset()` no existe. *Actualización 2026-10-20:* la instantánea pasa en la CI de Windows, pero sus
+máquinas ya están en UTC, así que no prueba que `TZ=UTC` baste en un Windows con otra zona horaria (no
+verificado).

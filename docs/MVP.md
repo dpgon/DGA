@@ -7,7 +7,10 @@
 >
 > **Entorno de verificación («entorno 2026»):** macOS en Apple Silicon, Python 3.12.15 **nativo** (sin
 > Rosetta), con las versiones exactas de `requirements-lock.txt`. Las pruebas automáticas pasan además con
-> Python 3.13.16 en el mismo Mac y con 3.12 y 3.13 en Linux (`act`). Windows no se ha probado.
+> Python 3.13.16 en el mismo Mac y con 3.12 y 3.13 en Linux (`act`).
+>
+> **Tras la publicación (2026-10-20):** la CI de GitHub pasa en Linux, macOS y Windows con 3.12 y 3.13, y un
+> clon nuevo desde GitHub, sin `--from`, se instala y pasa las pruebas siguiendo solo el README.
 >
 > Cada funcionalidad lleva su **criterio de aceptación** en forma de comando. «Verificado» quiere decir que se
 > ejecutó y se observó ese resultado. Desde la fase 1 hay pruebas automáticas (`tests/`): se indica cuál cubre
@@ -42,8 +45,7 @@ No es una funcionalidad, pero condiciona todas las demás.
 | Comprobación (entorno 2026) | Resultado observado |
 |---|---|
 | `pip install -r requirements-lock.txt -r requirements-dev.txt`, Python 3.12.15 nativo arm64, entorno nuevo | **Se instala** |
-| `python fetchdata.py --from <release/model-2026>` en un clon nuevo | Copia los 10 ficheros del modelo y descarga de su origen los de Tranco y Umbrella; los 2 ficheros de `data-2026` dan 404 porque esa release **aún no está publicada** (fase 7) |
-| `python fetchdata.py --from <release/data-2026>` a continuación | «All files installed and verified» |
+| `python fetchdata.py --nltk` en un clon nuevo desde GitHub (2026-10-20) | «All files installed and verified»: 19 ficheros, de las releases y de su origen, en 9 minutos |
 | `detectdga.py --check …` | Funciona: el modelo `.skops` carga en scikit-learn 1.9.1 |
 
 **Antes (2026-10-18):**
@@ -464,8 +466,8 @@ Era la definición de un trabajo académico entregado, no la de un producto mant
 - **Calidad:** se instala con `requirements-lock.txt` en Python 3.12 y 3.13; los datos se descargan y se
   verifican con `fetchdata.py`; ningún script descarga nada al ejecutarse.
 - **Pruebas:** `pytest` con pruebas de caracterización, de cada corrección y de los datos instalados frente al
-  manifiesto. La CI (`.github/workflows/tests.yml`) las ejecuta en Linux, macOS y Windows con 3.12 y 3.13;
-  hasta la publicación solo se ha comprobado en local (Linux con `act` y macOS), y Windows está sin verificar.
+  manifiesto. La CI (`.github/workflows/tests.yml`) las ejecuta y pasa en Linux, macOS y Windows con 3.12 y
+  3.13.
 - **Documentación:** README, este documento y `docs/`, con métricas, limitaciones y decisiones. Toda
   afirmación sobre el comportamiento está verificada o marcada como no verificada.
 - **Datos:** fuera de git, como assets de release o descargados de su origen, con tamaño, SHA‑256, fuente y

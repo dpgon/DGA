@@ -265,8 +265,10 @@ fichero, no coincide un hash o falla una descarga. `lookdga.py` sigue terminando
   tipico»). Los IDN se tratan solo en su forma `xn--`.
 - **Portabilidad:** las rutas usan `/` (Python lo acepta en Windows). Siete generadores usan `ctypes`
   para enteros de 32 bits, lo cual es portable. pykspa2 y suppobox dependen de la zona horaria de la máquina
-  (`time.mktime`); las pruebas fijan `TZ=UTC`, pero en Windows `time.tzset()` no existe. Windows **no se ha
-  verificado** (fase 7 de `TODO.md`).
+  (`time.mktime`); las pruebas fijan `TZ=UTC`, pero en Windows `time.tzset()` no existe. La instantánea de
+  generadores pasa en la CI de Windows, cuyas máquinas ya están en UTC: **no verificado** en un Windows con
+  otra zona horaria. Los ficheros de datos se sacan byte a byte (`.gitattributes`): sin
+  eso, git los convertía a CRLF en Windows y sus hashes no coincidían con el manifiesto.
 
 ---
 
@@ -326,8 +328,8 @@ Las pruebas que necesitan datos o el corpus se saltan si faltan; ninguna descarg
 | Datos instalados frente al manifiesto | `test_data.py` (`slow`) |
 
 **CI:** `.github/workflows/tests.yml`, matriz {`ubuntu-latest`, `macos-14`, `windows-latest`} × {3.12, 3.13}:
-instala el lock, ejecuta `fetchdata.py --nltk` con caché y `pytest`. Comprobada en local en Linux (`act`) y
-en macOS Apple Silicon; en GitHub no se ejecutará hasta la publicación (fase 7), y Windows está sin verificar.
+instala el lock, ejecuta `fetchdata.py --nltk` con caché y `pytest`. Se ejecuta al subir ramas, no etiquetas.
+Los seis trabajos pasan en GitHub (2026-10-20), y la caché de datos evita volver a descargarlos.
 
 **Sin cubrir:**
 - 39 de 50 generadores, sin confirmación externa;
@@ -349,8 +351,8 @@ en macOS Apple Silicon; en GitHub no se ejecutará hasta la publicación (fase 7
   - `model-2026`: el modelo actual, su escalador, sus metadatos y el diccionario.
 
   Tranco y Umbrella se descargan de su origen, porque no está claro que se puedan redistribuir. **`data-2026` y
-  `model-2026` están preparadas en `release/` y se publican en la fase 7**; hasta entonces, `fetchdata.py
-  --from release/…` las instala desde el disco. No hay paquete en PyPI, ni `pyproject.toml`, ni imagen de
+  `model-2026` se publicaron el 2026-10-20**, junto con la etiqueta `v2026` de la actualización.
+  `fetchdata.py --from DIR` instala desde un directorio local en lugar de descargar. No hay paquete en PyPI, ni `pyproject.toml`, ni imagen de
   contenedor.
 - **Instalación:** `pip install -r requirements-lock.txt` en Python 3.12 o 3.13, y `python fetchdata.py
   --nltk`.

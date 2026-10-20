@@ -36,9 +36,9 @@ y obtiene métricas que se pueden reproducir, con sus límites documentados.
   necesita red.
 - **Casos límite:** la primera ejecución no puede depender de descargas implícitas, como hoy el corpus de
   sílabas.
-- **Estado (2026-10-19): hecho en Linux y macOS, pendiente en Windows.** Se instala con
-  `requirements-lock.txt` en Python 3.12 y 3.13 nativos y `fetchdata.py --nltk` instala datos y corpus; ningún
-  script descarga nada al ejecutarse (C1, C8, C11). Windows se comprobará en la CI al publicar (fase 7).
+- **Estado (2026-10-20): hecho.** Se instala con `requirements-lock.txt` en Python 3.12 y 3.13 y
+  `fetchdata.py --nltk` instala datos y corpus; ningún script descarga nada al ejecutarse (C1, C8, C11). Las
+  pruebas pasan en la CI de Linux, macOS y Windows, y en un clon nuevo desde GitHub en macOS Apple Silicon.
 
 ### 1.1.2 Un modelo que cargue hoy
 - **Origen:** [deducido] `full.pkl` no carga en scikit-learn actual (`docs/MVP.md` §0).
@@ -140,8 +140,8 @@ y obtiene métricas que se pueden reproducir, con sus límites documentados.
   - cada funcionalidad de `docs/MVP.md` tiene una prueba automática que comprueba su criterio de aceptación;
   - las pruebas pasan en las tres plataformas;
   - el README coincide con el comportamiento y declara las limitaciones conocidas.
-- **Estado (2026-10-19): en parte.** Hay pruebas automáticas de caracterización y de cada corrección, y CI
-  en las tres plataformas, comprobada en local en Linux y macOS. No todas las funcionalidades tienen una
+- **Estado (2026-10-20): en parte.** Hay pruebas automáticas de caracterización y de cada corrección, y la CI
+  pasa en las tres plataformas. No todas las funcionalidades tienen una
   prueba de su criterio de aceptación (por ejemplo, las opciones 4-9 de estadísticas).
 
 ---

@@ -585,11 +585,14 @@ Depende de: el anexo del sondeo (1.6), las fases 2–4 y los datos del juego `20
       `pip install -r requirements-lock.txt -r requirements-dev.txt`, `fetchdata.py --from …` y `pytest`
       pasan.
   *Hecho: 3.12 en el clon nuevo (arriba) y 3.13 en el repositorio: 346 pruebas pasan en cada uno.*
-- [ ] **Windows:** no se puede verificar en local. Queda para la fase 7, con estas comprobaciones:
+- [x] **Windows:** no se puede verificar en local. Queda para la fase 7, con estas comprobaciones:
   - las rutas `ml-data/…` y `DGAs/wordlist/…` funcionan;
   - los colores ANSI no rompen las pruebas;
   - los generadores con `ctypes` dan la instantánea de 1.3;
   - la instantánea se reproduce con `TZ=UTC` aunque Windows no tenga `time.tzset()` (ver `tests/conftest.py`).  Si no, fijar la zona horaria en el workflow.
+  *Hecho en la fase 7 (2026-10-20): la CI de Windows pasa con 3.12 y 3.13 (300 pruebas, las mismas que en
+  Linux), instantánea incluida. Hizo falta `.gitattributes` para que git no convirtiera los datos a CRLF. Las
+  máquinas de GitHub ya están en UTC: `TZ=UTC` en un Windows con otra zona horaria queda **no verificado**.*
 
 **Aceptación de la fase 5:**
 - en Python 3.12 y 3.13, en Linux (`act`) y en macOS arm64 (local), la instalación con
@@ -712,17 +715,28 @@ local. Cada paso requiere el visto bueno del autor en el momento de hacerlo.
   *Hecho: los 13 assets descargados coinciden en tamaño y SHA‑256 con el manifiesto.*
 
 ### 7.3 Código
-- [ ] `git push origin main`, más la etiqueta de versión de la actualización si el autor decide crearla.
-- [ ] **Verificar la CI en GitHub:** la matriz completa de 5.5 pasa en verde, **incluido Windows**, con las
+- [x] `git push origin main`, más la etiqueta de versión de la actualización si el autor decide crearla.
+  *Hecho (2026-10-20): primero las etiquetas `data-2026` y `model-2026` y las releases, después `main`. La
+  etiqueta `v2026` se crea sobre el `main` final, tras la CI en verde (decisión del autor: sin release propia).*
+- [x] **Verificar la CI en GitHub:** la matriz completa de 5.5 pasa en verde, **incluido Windows**, con las
       comprobaciones de Windows de 5.5.
-- [ ] Si Windows falla: corregirlo en una rama, verificarlo en la CI de GitHub (ya se puede subir) y unirlo
+  *Hecho: la primera ejecución de `main` falló en Windows (CRLF); con la corrección, los seis trabajos pasan
+  (ejecución 39376963931).*
+- [x] Si Windows falla: corregirlo en una rama, verificarlo en la CI de GitHub (ya se puede subir) y unirlo
       a `main`.
-- [ ] Comprobar que la caché de `ml-data/` de la CI funciona: la segunda ejecución no vuelve a descargar.
+  *Hecho: rama `fase-7-windows` con `.gitattributes`, CI en verde en la rama y unida a `main`.*
+- [x] Comprobar que la caché de `ml-data/` de la CI funciona: la segunda ejecución no vuelve a descargar.
+  *Hecho: en Linux y macOS la ejecución de `main` restauró la caché y no descargó nada; en Windows se guardó
+  en esa ejecución y, al relanzar un trabajo, se restauró sin descargas.*
 
 ### 7.4 Comprobación final
-- [ ] En un clon nuevo **desde GitHub**, sin `--from`: instalar con `requirements-lock.txt`,
+- [x] En un clon nuevo **desde GitHub**, sin `--from`: instalar con `requirements-lock.txt`,
       `python fetchdata.py --nltk`, `pytest` y el ejemplo `--check` del README.
-- [ ] Comprobar que el enlace de las notas de `v2021` a `docs/MVP.md` en `main` funciona.
+  *Hecho (Python 3.12.15, macOS Apple Silicon): `fetchdata.py --nltk` instala los 19 ficheros en 9 min;
+  `pytest`: 300 pasan; el ejemplo `-b --check` da los veredictos del README.*
+- [x] Comprobar que el enlace de las notas de `v2021` a `docs/MVP.md` en `main` funciona.
+  *Hecho: las notas citan `docs/MVP.md`, `docs/CORRECCIONES.md` y `TODO.md` de `main` como texto; los tres
+  existen en GitHub.*
 - [ ] Borrar los borradores locales de `release/`, una vez verificadas las releases publicadas.
 
 **Aceptación de la fase 7:**

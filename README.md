@@ -30,7 +30,7 @@ listed in [`docs/MVP.md`](docs/MVP.md). In short:
   DGAs that build domains from words are almost never detected.
 - There are no real DGA domains newer than 2021 in the data: the figures measure how the model generalises to
   unseen domains, not how it ages against new families.
-- There are automated tests (see [Tests](#tests)).
+- There are automated tests, run by the CI on Linux, macOS and Windows (see [Tests](#tests)).
 - The plan (recent DGA data, YARA-based sample identification) is in [`docs/FUTURE.md`](docs/FUTURE.md).
 
 ## Install
@@ -268,8 +268,7 @@ UTC, because some generators depend on the local time zone.
 | `test_offline.py` | No script downloads anything when imported |
 
 The CI (`.github/workflows/tests.yml`) runs the default tests on Linux, macOS and Windows with Python 3.12 and
-3.13. Linux (with [`act`](https://github.com/nektos/act)) and macOS on Apple Silicon were checked locally;
-Windows is not verified yet.
+3.13; all six jobs pass.
 
 ## Documentation
 
