@@ -22,9 +22,9 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
@@ -37,7 +37,7 @@ jobs:
 
       # The data files are release assets (C8), listed in ml-data/MANIFEST: a new manifest means new files
       - name: Cache data files and NLTK brown corpus
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ml-data
